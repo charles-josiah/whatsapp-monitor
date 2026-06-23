@@ -45,3 +45,21 @@ To add more monitored labels, edit `server.js`:
 ```js
 const MONITORED_LABELS = ['eximio', 'pendente', 'new-label'];
 ```
+
+## Troubleshooting
+
+### Container fails to start — "profile appears to be in use by another Chromium process"
+
+This happens when the previous container left a lock file in the WhatsApp session directory (e.g. after a forced stop or rebuild). The new container can't start Chromium because the profile is locked.
+
+**Fix:** remove the Singleton lock files and let the container restart automatically:
+
+```bash
+find ./wwebjs_auth -name "Singleton*" -delete
+```
+
+Then restart if needed:
+
+```bash
+docker compose restart
+```
