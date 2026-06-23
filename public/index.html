@@ -49,56 +49,69 @@
     .tab-badge.yellow { background: var(--yellow); color: #111; }
     .tab-badge.gray { background: var(--gray); }
 
-    main { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    main { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
     .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); gap: 10px; padding: 40px; text-align: center; }
     .empty svg { width: 44px; height: 44px; opacity: 0.3; }
 
-    .thread-card { background: white; border-radius: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.3s ease; overflow: hidden; }
+    /* Thread card */
+    .thread-card { background: white; border-radius: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.25s ease; overflow: hidden; }
     .thread-card.followed { box-shadow: 0 0 0 2px var(--orange), var(--shadow); }
-    .thread-card.is-read { opacity: 0.7; border-left-color: #ccc !important; }
+    .thread-card.is-read { opacity: 0.65; border-left-color: #ccc !important; }
     .thread-card.direct { border-left-color: var(--blue); }
     .thread-card.mention { border-left-color: var(--red); }
     .thread-card.eximio { border-left-color: var(--green); }
     .thread-card.pendente { border-left-color: var(--yellow); }
-    @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
 
-    .thread-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; gap: 8px; border-bottom: 1px solid #f0f0f0; cursor: pointer; user-select: none; }
-    .thread-header:hover { background: #fafafa; }
-    .thread-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
-    .msg-tag { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+    /* Thread header — always visible, compact */
+    .thread-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; gap: 8px;
+      cursor: pointer; user-select: none;
+    }
+    .thread-header:hover { background: #f7f7f7; }
+    .th-left { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; }
+    .msg-tag { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; padding: 2px 5px; border-radius: 4px; flex-shrink: 0; }
     .tag-direct { background: #E8F0FE; color: var(--blue); }
     .tag-mention { background: #FCE8E6; color: var(--red); }
     .tag-eximio { background: var(--green-light); color: var(--green-dark); }
     .tag-pendente { background: #FEF3C7; color: #B45309; }
     .thread-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .thread-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .msg-count { font-size: 11px; color: var(--gray); }
+    /* preview of last message, shown when collapsed */
+    .thread-preview { font-size: 11px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .th-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .msg-count { font-size: 11px; color: var(--gray); white-space: nowrap; }
     .new-pill { background: var(--red); color: white; border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 700; }
     .action-check { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--gray); cursor: pointer; user-select: none; }
     .action-check input { width: 13px; height: 13px; cursor: pointer; accent-color: var(--green-dark); }
     .action-check.follow-check { color: var(--orange); font-weight: 600; }
     .action-check.follow-check input { accent-color: var(--orange); }
-    .collapse-icon { font-size: 11px; color: var(--gray); margin-left: 2px; transition: transform 0.2s; }
-    .collapse-icon.open { transform: rotate(90deg); }
+    .chevron { font-size: 10px; color: var(--gray); transition: transform 0.2s; flex-shrink: 0; }
+    .chevron.open { transform: rotate(90deg); }
 
-    .thread-messages { border-bottom: 1px solid #f0f0f0; }
-    .thread-msg { display: flex; gap: 0; padding: 6px 14px; border-bottom: 1px solid #f5f5f5; }
+    /* Expanded body — hidden by default */
+    .thread-body { display: none; border-top: 1px solid #f0f0f0; }
+    .thread-body.open { display: block; }
+
+    /* Message rows */
+    .thread-msg { display: flex; padding: 5px 12px; border-bottom: 1px solid #f5f5f5; }
     .thread-msg:last-child { border-bottom: none; }
-    .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 10px; flex-shrink: 0; padding-top: 3px; }
-    .tree-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; margin-top: 3px; }
+    .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 9px; flex-shrink: 0; padding-top: 4px; }
+    .tree-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
     .tree-dot.new { background: var(--green); }
-    .tree-vline { width: 1px; background: #e0e0e0; flex: 1; margin-top: 3px; }
+    .tree-vline { width: 1px; background: #e5e5e5; flex: 1; margin-top: 3px; min-height: 8px; }
     .thread-msg:last-child .tree-vline { display: none; }
     .msg-content { flex: 1; min-width: 0; }
-    .msg-row-header { display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px; }
-    .msg-sender-sm { font-size: 11px; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+    .msg-row-top { display: flex; align-items: baseline; gap: 6px; margin-bottom: 1px; }
+    .msg-sender-sm { font-size: 11px; font-weight: 700; color: var(--green-dark); }
     .msg-time-sm { font-size: 10px; color: var(--gray); }
-    .msg-body-sm { font-size: 13px; color: var(--text); line-height: 1.45; word-break: break-word; }
+    .msg-body-sm { font-size: 12px; color: var(--text); line-height: 1.4; word-break: break-word; }
 
-    .thread-reply { display: flex; gap: 8px; padding: 8px 14px; align-items: center; }
-    .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 6px 14px; font-size: 12px; outline: none; transition: border 0.2s; }
+    /* Reply area */
+    .thread-reply { display: flex; gap: 8px; padding: 7px 12px; border-top: 1px solid #f0f0f0; }
+    .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 5px 12px; font-size: 12px; outline: none; transition: border 0.2s; }
     .reply-input:focus { border-color: var(--green-dark); }
-    .reply-btn { background: var(--green-dark); color: white; border: none; border-radius: 20px; padding: 6px 16px; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+    .reply-btn { background: var(--green-dark); color: white; border: none; border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; }
     .reply-btn:hover { background: var(--green); }
     .reply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -140,35 +153,34 @@
   <div class="empty" id="empty-state">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <p>Waiting for messages...</p>
-    <p style="font-size:11px;margin-top:4px;">Direct messages, @mentions and Eximio/Pending labels will appear here.</p>
   </div>
 </main>
 
 <script>
   const socket = io();
   let currentTab = 'all', soundEnabled = true;
-
-  // threads: Map<chatId, thread>
   const threads = new Map();
-  const threadOrder = []; // newest first
+  const threadOrder = [];
   const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0, read:0 };
+  // track which chatIds the user has manually expanded
+  const expandedChats = new Set();
 
   fetch('/api/version').then(r=>r.json()).then(d=>{
     document.getElementById('app-version').textContent='v'+d.version;
   }).catch(()=>{});
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
+  // ─ helpers
   function playNotif() {
     if (!soundEnabled) return;
     try {
-      const ctx = new (window.AudioContext||window.webkitAudioContext)();
-      const osc = ctx.createOscillator(), gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 880; osc.type = 'sine';
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.4);
-      osc.start(); osc.stop(ctx.currentTime+0.4);
-    } catch(e){}
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=880;o.type='sine';
+      g.gain.setValueAtTime(0.3,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+      o.start();o.stop(ctx.currentTime+0.4);
+    }catch(e){}
   }
   document.getElementById('sound-btn').addEventListener('click',()=>{
     soundEnabled=!soundEnabled;
@@ -176,127 +188,124 @@
   });
   function toast(msg,d=2500){
     const el=document.getElementById('toast');
-    el.textContent=msg; el.classList.add('show');
+    el.textContent=msg;el.classList.add('show');
     setTimeout(()=>el.classList.remove('show'),d);
   }
-  function formatTime(iso){ return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
-  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function tagLabel(c){ return {direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
+  function fmtTime(iso){return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function tagLabel(c){return{direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c;}
 
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.addEventListener('click',()=>{
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active'); currentTab=tab.dataset.tab; renderFeed();
+      tab.classList.add('active');currentTab=tab.dataset.tab;renderFeed();
     });
   });
 
-  // ─── Thread model ──────────────────────────────────────────────────────────
-  function addMessageToThread(msg, isNew) {
-    let thread = threads.get(msg.chatId);
-    if (!thread) {
-      thread = { chatId:msg.chatId, chatName:msg.chatName, category:msg.category,
-                 labels:msg.labels, followed:false, markedRead:false, messages:[], newCount:0 };
-      threads.set(msg.chatId, thread);
+  // ─ thread model
+  function addMsg(msg, isNew) {
+    let t=threads.get(msg.chatId);
+    if (!t) {
+      t={chatId:msg.chatId,chatName:msg.chatName,category:msg.category,
+         labels:msg.labels,followed:false,markedRead:false,messages:[],newCount:0};
+      threads.set(msg.chatId,t);
       threadOrder.unshift(msg.chatId);
     } else if (isNew) {
-      const idx = threadOrder.indexOf(msg.chatId);
-      if (idx > 0) { threadOrder.splice(idx,1); threadOrder.unshift(msg.chatId); }
-      // new message arrives — unmark as read, move back to active
-      if (thread.markedRead) {
-        thread.markedRead = false;
-        counts.read = Math.max(0, counts.read-1);
-        counts[thread.category]=(counts[thread.category]||0)+1;
+      const idx=threadOrder.indexOf(msg.chatId);
+      if(idx>0){threadOrder.splice(idx,1);threadOrder.unshift(msg.chatId);}
+      if(t.markedRead){
+        t.markedRead=false;
+        counts.read=Math.max(0,counts.read-1);
+        counts[t.category]=(counts[t.category]||0)+1;
         counts.all++;
         updateBadges();
       }
     }
-    thread.messages.push(msg);
-    if (isNew && !msg.read) thread.newCount=(thread.newCount||0)+1;
-    return thread;
+    t.messages.push(msg);
+    if(isNew&&!msg.read) t.newCount=(t.newCount||0)+1;
+    return t;
   }
 
-  function markThreadRead(chatId) {
-    const thread = threads.get(chatId);
-    if (!thread || thread.markedRead) return;
-    thread.markedRead = true;
-    thread.newCount = 0;
-    thread.messages.forEach(m=>m.read=true);
-    // adjust counts
-    counts[thread.category] = Math.max(0,(counts[thread.category]||0)-1);
-    counts.all = Math.max(0, counts.all-1);
+  function doMarkReadThread(chatId) {
+    const t=threads.get(chatId); if(!t||t.markedRead) return;
+    t.markedRead=true; t.newCount=0;
+    t.messages.forEach(m=>m.read=true);
+    counts[t.category]=Math.max(0,(counts[t.category]||0)-1);
+    counts.all=Math.max(0,counts.all-1);
     counts.read++;
     updateBadges();
-    // remove from current view (unless on read tab) and re-render
-    if (currentTab !== 'read') {
-      const card = document.querySelector(`.thread-card[data-chat-id="${CSS.escape(chatId)}"]`);
-      if (card) {
-        card.style.transition='opacity 0.3s, transform 0.3s';
-        card.style.opacity='0'; card.style.transform='translateX(10px)';
-        setTimeout(()=>card.remove(), 300);
-        checkEmpty();
-      }
+    if(currentTab!=='read'){
+      const card=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(chatId)}"]`);
+      if(card){card.style.transition='opacity 0.3s,transform 0.3s';card.style.opacity='0';card.style.transform='translateX(12px)';setTimeout(()=>{card.remove();checkEmpty();},300);}
     }
   }
 
-  function checkEmpty() {
+  function checkEmpty(){
     setTimeout(()=>{
       const feed=document.getElementById('feed');
-      const hasCards = [...feed.children].some(c=>c!==document.getElementById('empty-state'));
-      document.getElementById('empty-state').style.display = hasCards?'none':'flex';
-    }, 350);
+      const has=[...feed.children].some(c=>c.id!=='empty-state');
+      document.getElementById('empty-state').style.display=has?'none':'flex';
+    },350);
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
-  function getFilteredThreadIds() {
-    return threadOrder.filter(chatId=>{
-      const t=threads.get(chatId); if(!t) return false;
-      if (currentTab==='read') return t.markedRead;
-      if (t.markedRead) return false; // hide from all other tabs
-      if (currentTab==='all') return true;
-      if (currentTab==='followed') return t.followed;
+  // ─ render
+  function getFiltered(){
+    return threadOrder.filter(id=>{
+      const t=threads.get(id);if(!t)return false;
+      if(currentTab==='read') return t.markedRead;
+      if(t.markedRead) return false;
+      if(currentTab==='all') return true;
+      if(currentTab==='followed') return t.followed;
       return t.category===currentTab;
     });
   }
 
-  function renderFeed() {
-    const feed=document.getElementById('feed'), empty=document.getElementById('empty-state');
-    Array.from(feed.children).forEach(c=>{ if(c!==empty) c.remove(); });
-    const ids=getFilteredThreadIds();
-    if (!ids.length) { empty.style.display='flex'; return; }
+  function renderFeed(){
+    const feed=document.getElementById('feed'),empty=document.getElementById('empty-state');
+    [...feed.children].forEach(c=>{if(c!==empty)c.remove();});
+    const ids=getFiltered();
+    if(!ids.length){empty.style.display='flex';return;}
     empty.style.display='none';
-    ids.forEach(chatId=>{ const t=threads.get(chatId); if(t) feed.appendChild(buildThreadCard(t)); });
+    ids.forEach(id=>{const t=threads.get(id);if(t)feed.appendChild(buildCard(t));});
   }
 
-  function buildThreadCard(thread) {
-    const card = document.createElement('div');
+  function buildCard(thread) {
+    const isExpanded = expandedChats.has(thread.chatId);
+    const newCount = thread.newCount||0;
+    const lastMsg = thread.messages[thread.messages.length-1];
+
+    const card=document.createElement('div');
     card.className=`thread-card ${thread.category}${thread.followed?' followed':''}${thread.markedRead?' is-read':''}`;
     card.dataset.chatId=thread.chatId;
 
-    const newCount=thread.newCount||0;
-
-    // Header
-    const header=document.createElement('div');
-    header.className='thread-header';
-    header.innerHTML=`
-      <div class="thread-meta">
+    // ─ Header (always visible)
+    const hdr=document.createElement('div');
+    hdr.className='thread-header';
+    hdr.innerHTML=`
+      <div class="th-left">
         <span class="msg-tag tag-${thread.category}">${tagLabel(thread.category)}</span>
-        <span class="thread-name">${thread.category==='direct'?'&#128172; ':'&#128101; '}${esc(thread.chatName)}</span>
+        <div style="min-width:0">
+          <div class="thread-name">${thread.category==='direct'?'&#128172; ':'&#128101; '}${esc(thread.chatName)}</div>
+          ${!isExpanded&&lastMsg?`<div class="thread-preview">${esc(lastMsg.sender)}: ${esc(lastMsg.body||'[media]')}</div>`:''}
+        </div>
         ${newCount>0&&!thread.markedRead?`<span class="new-pill">${newCount} new</span>`:''}
       </div>
-      <div class="thread-controls">
+      <div class="th-right">
         <span class="msg-count">${thread.messages.length} msg${thread.messages.length!==1?'s':''}</span>
         <label class="action-check" onclick="event.stopPropagation()">
-          <input type="checkbox" class="read-check" ${thread.markedRead?'checked':''} /> Mark read
+          <input type="checkbox" class="read-check" ${thread.markedRead?'checked':''}/> Mark read
         </label>
         <label class="action-check follow-check" onclick="event.stopPropagation()">
-          <input type="checkbox" class="follow-check-input" ${thread.followed?'checked':''} /> Follow
+          <input type="checkbox" class="follow-check-input" ${thread.followed?'checked':''}/> Follow
         </label>
-        <span class="collapse-icon open">&#9654;</span>
+        <span class="chevron${isExpanded?' open':''}">&#9654;</span>
       </div>`;
 
-    // Messages
+    // ─ Body (collapsed by default)
+    const body=document.createElement('div');
+    body.className='thread-body'+(isExpanded?' open':'');
+
     const msgList=document.createElement('div');
-    msgList.className='thread-messages';
     thread.messages.forEach((msg,i)=>{
       const row=document.createElement('div');
       row.className='thread-msg';
@@ -307,152 +316,143 @@
           ${!isLast?'<div class="tree-vline"></div>':''}
         </div>
         <div class="msg-content">
-          <div class="msg-row-header">
+          <div class="msg-row-top">
             <span class="msg-sender-sm">${esc(msg.sender)}</span>
-            <span class="msg-time-sm">${formatTime(msg.timestamp)}</span>
+            <span class="msg-time-sm">${fmtTime(msg.timestamp)}</span>
           </div>
           <div class="msg-body-sm">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div>
         </div>`;
       msgList.appendChild(row);
     });
 
-    // Reply
     const replyArea=document.createElement('div');
     replyArea.className='thread-reply';
-    replyArea.innerHTML=`<input class="reply-input" type="text" placeholder="Reply to ${esc(thread.chatName)}..." /><button class="reply-btn">Send &#10148;</button>`;
+    replyArea.innerHTML=`<input class="reply-input" type="text" placeholder="Reply to ${esc(thread.chatName)}..."/><button class="reply-btn">Send &#10148;</button>`;
 
-    card.appendChild(header);
-    card.appendChild(msgList);
-    card.appendChild(replyArea);
+    body.appendChild(msgList);
+    body.appendChild(replyArea);
+    card.appendChild(hdr);
+    card.appendChild(body);
 
-    // Collapse
-    const collapseIcon=header.querySelector('.collapse-icon');
-    header.addEventListener('click',()=>{
-      const open=msgList.style.display!=='none';
-      msgList.style.display=open?'none':'';
-      replyArea.style.display=open?'none':'';
-      collapseIcon.classList.toggle('open',!open);
+    // toggle expand/collapse
+    hdr.addEventListener('click',()=>{
+      const opening=!body.classList.contains('open');
+      body.classList.toggle('open',opening);
+      hdr.querySelector('.chevron').classList.toggle('open',opening);
+      if(opening) expandedChats.add(thread.chatId);
+      else expandedChats.delete(thread.chatId);
+      // update preview line
+      const previewEl=hdr.querySelector('.thread-preview');
+      if(opening&&previewEl) previewEl.remove();
+      else if(!opening&&lastMsg&&!hdr.querySelector('.thread-preview')){
+        const d=document.createElement('div');
+        d.className='thread-preview';
+        d.textContent=`${lastMsg.sender}: ${lastMsg.body||'[media]'}`;
+        hdr.querySelector('.th-left > div').appendChild(d);
+      }
     });
 
-    // Mark read → move to Read tab
-    header.querySelector('.read-check').addEventListener('change', async e=>{
-      if (e.target.checked) {
+    // mark read
+    hdr.querySelector('.read-check').addEventListener('change',async e=>{
+      if(e.target.checked){
         await doMarkRead(thread.chatId);
-        markThreadRead(thread.chatId);
-        if (currentTab==='read') renderFeed(); // refresh read tab
+        doMarkReadThread(thread.chatId);
+        if(currentTab==='read') renderFeed();
       } else {
-        // uncheck: move back (rare use case)
         thread.markedRead=false;
         counts.read=Math.max(0,counts.read-1);
         counts[thread.category]=(counts[thread.category]||0)+1;
         counts.all++;
-        updateBadges();
-        renderFeed();
+        updateBadges(); renderFeed();
       }
     });
 
-    // Follow
-    header.querySelector('.follow-check-input').addEventListener('change', e=>{
+    // follow
+    hdr.querySelector('.follow-check-input').addEventListener('change',e=>{
       thread.followed=e.target.checked;
       card.classList.toggle('followed',thread.followed);
       counts.followed=[...threads.values()].filter(t=>t.followed).length;
-      const el=document.getElementById('badge-followed'); if(el) el.textContent=counts.followed;
+      const el=document.getElementById('badge-followed');if(el)el.textContent=counts.followed;
       toast(thread.followed?'&#128992; Following':'Unfollowed');
       if(currentTab==='followed') renderFeed();
     });
 
-    // Reply
-    const replyInput=replyArea.querySelector('.reply-input');
-    const replyBtn=replyArea.querySelector('.reply-btn');
-    replyInput.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(thread.chatId,replyInput,replyBtn);} });
-    replyBtn.addEventListener('click',()=>doReply(thread.chatId,replyInput,replyBtn));
+    // reply
+    const inp=replyArea.querySelector('.reply-input'),btn=replyArea.querySelector('.reply-btn');
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(thread.chatId,inp,btn);}});
+    btn.addEventListener('click',()=>doReply(thread.chatId,inp,btn));
 
     return card;
   }
 
-  // ─── API ───────────────────────────────────────────────────────────────────
-  async function doReply(chatId,input,btn){
-    const text=input.value.trim(); if(!text) return;
-    btn.disabled=true; btn.textContent='...';
-    try {
+  // ─ API
+  async function doReply(chatId,inp,btn){
+    const text=inp.value.trim();if(!text)return;
+    btn.disabled=true;btn.textContent='...';
+    try{
       const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,message:text})});
-      if(r.ok){input.value='';toast('&#9989; Sent!');}else{toast('&#10060; Failed');}
+      if(r.ok){inp.value='';toast('&#9989; Sent!');}else toast('&#10060; Failed');
     }catch(e){toast('&#10060; '+e.message);}
-    btn.disabled=false; btn.innerHTML='Send &#10148;';
+    btn.disabled=false;btn.innerHTML='Send &#10148;';
   }
   async function doMarkRead(chatId){
-    try { await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})}); }
-    catch(e){}
+    try{await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})});}catch(e){}
   }
   document.getElementById('clear-btn').addEventListener('click',async()=>{
     const btn=document.getElementById('clear-btn');
-    btn.disabled=true; btn.innerHTML='&#9203; Clearing...';
-    try {
+    btn.disabled=true;btn.innerHTML='&#9203; Clearing...';
+    try{
       const r=await fetch('/api/clear-all',{method:'POST'});
-      const data=await r.json();
-      if(r.ok) toast(`&#9989; Cleared ${data.cleared}, kept ${data.skipped}`);
-      else toast('&#10060; '+data.error);
+      const d=await r.json();
+      if(r.ok)toast(`&#9989; Cleared ${d.cleared}, kept ${d.skipped}`);else toast('&#10060; '+d.error);
     }catch(e){toast('&#10060; '+e.message);}
-    btn.disabled=false; btn.innerHTML='&#129529; Clear All';
+    btn.disabled=false;btn.innerHTML='&#129529; Clear All';
   });
 
   function updateBadges(){
-    Object.keys(counts).forEach(k=>{ const el=document.getElementById(`badge-${k}`); if(el) el.textContent=counts[k]; });
+    Object.keys(counts).forEach(k=>{const el=document.getElementById(`badge-${k}`);if(el)el.textContent=counts[k];});
   }
 
-  // ─── Socket ────────────────────────────────────────────────────────────────
-  socket.on('status',data=>{
-    document.getElementById('status-dot').className='status-dot'+(data.connected?' online':'');
-    document.getElementById('status-text').textContent=data.message;
-    if(data.connected) document.getElementById('qr-modal').classList.remove('show');
+  // ─ socket
+  socket.on('status',d=>{
+    document.getElementById('status-dot').className='status-dot'+(d.connected?' online':'');
+    document.getElementById('status-text').textContent=d.message;
+    if(d.connected)document.getElementById('qr-modal').classList.remove('show');
   });
-  socket.on('qr',url=>{ document.getElementById('qr-img').src=url; document.getElementById('qr-modal').classList.add('show'); });
-  socket.on('stats',data=>{
-    document.getElementById('unread-count').textContent=data.groupsUnread;
-    document.getElementById('unread-badge').classList.toggle('visible',data.groupsUnread>0);
+  socket.on('qr',url=>{document.getElementById('qr-img').src=url;document.getElementById('qr-modal').classList.add('show');});
+  socket.on('stats',d=>{
+    document.getElementById('unread-count').textContent=d.groupsUnread;
+    document.getElementById('unread-badge').classList.toggle('visible',d.groupsUnread>0);
   });
-
   socket.on('history',msgs=>{
-    [...msgs].reverse().forEach(m=>addMessageToThread(m,false));
+    [...msgs].reverse().forEach(m=>addMsg(m,false));
     Object.keys(counts).forEach(k=>counts[k]=0);
     threads.forEach(t=>{
-      if(t.markedRead){ counts.read++; return; }
-      counts[t.category]=(counts[t.category]||0)+1;
-      counts.all++;
-      if(t.followed) counts.followed++;
+      if(t.markedRead){counts.read++;return;}
+      counts[t.category]=(counts[t.category]||0)+1;counts.all++;
+      if(t.followed)counts.followed++;
     });
-    updateBadges();
-    renderFeed();
+    updateBadges();renderFeed();
   });
-
   socket.on('message',msg=>{
-    msg.read=false; msg.followed=false;
-    const isNewThread=!threads.has(msg.chatId);
-    addMessageToThread(msg,true);
-    if(isNewThread && !threads.get(msg.chatId).markedRead){
-      counts[msg.category]=(counts[msg.category]||0)+1;
-      counts.all++;
-      updateBadges();
-    }
+    msg.read=false;msg.followed=false;
+    const isNew=!threads.has(msg.chatId);
+    addMsg(msg,true);
+    const t=threads.get(msg.chatId);
+    if(isNew&&!t.markedRead){counts[msg.category]=(counts[msg.category]||0)+1;counts.all++;updateBadges();}
     playNotif();
-    if(Notification.permission==='granted') new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
-
-    const thread=threads.get(msg.chatId);
-    if(thread.markedRead) return; // don't show in feed if already in read tab
-
-    const existingCard=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
-    if(existingCard&&(currentTab==='all'||currentTab===msg.category)){
-      existingCard.remove();
-      const feed=document.getElementById('feed');
-      feed.insertBefore(buildThreadCard(thread),feed.firstChild);
-    } else if(!existingCard&&(currentTab==='all'||currentTab===msg.category)){
-      const feed=document.getElementById('feed');
+    if(Notification.permission==='granted')new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
+    if(t.markedRead)return;
+    const existing=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
+    if(existing&&(currentTab==='all'||currentTab===msg.category)){
+      existing.remove();
+      document.getElementById('feed').insertBefore(buildCard(t),document.getElementById('feed').firstChild);
+    } else if(!existing&&(currentTab==='all'||currentTab===msg.category)){
       document.getElementById('empty-state').style.display='none';
-      feed.insertBefore(buildThreadCard(thread),feed.firstChild);
+      document.getElementById('feed').insertBefore(buildCard(t),document.getElementById('feed').firstChild);
     }
   });
-
-  if(Notification.permission==='default') Notification.requestPermission();
+  if(Notification.permission==='default')Notification.requestPermission();
 </script>
 </body>
 </html>
