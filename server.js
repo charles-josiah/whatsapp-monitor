@@ -4,6 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const qrcode = require('qrcode');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +14,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
+
+// Build version (generated at Docker build time)
+const BUILD_VERSION = fs.existsSync('./.build-version')
+  ? fs.readFileSync('./.build-version', 'utf8').trim()
+  : '0.1.dev';
+
+console.log(`Build version: ${BUILD_VERSION}`);
 
 // Monitored labels (case-insensitive) — WhatsApp Business labels
 const MONITORED_LABELS = ['eximio', 'pendente'];
@@ -138,18 +146,22 @@ async function emitStats() {
   }
 }
 
-// Emit stats every 30 seconds
 setInterval(emitStats, 30000);
 
-// ─── API Endpoints ─────────────────────────────────────────────────────────────
+// ─── API ───────────────────────────────────────────────────────────────────────
+
+app.get('/api/version', (req, res) => {
+  res.json({ version: BUILD_VERSION });
+});
 
 app.get('/api/stats', async (req, res) => {
   if (!clientReady) return res.status(503).json({ error: 'WhatsApp not connected' });
   try {
     const chats = await client.getChats();
-    const totalUnread = chats.filter(c => c.unreadCount > 0).length;
-    const groupsUnread = chats.filter(c => c.isGroup && c.unreadCount > 0).length;
-    res.json({ totalUnread, groupsUnread });
+    res.json({
+      totalUnread: chats.filter(c => c.unreadCount > 0).length,
+      groupsUnread: chats.filter(c => c.isGroup && c.unreadCount > 0).length
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

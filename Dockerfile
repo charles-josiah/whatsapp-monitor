@@ -18,6 +18,9 @@ RUN npm install --omit=dev
 
 COPY . .
 
+# Generate build version: 0.1.HHMM (time of docker build)
+RUN echo "0.1.$(date +%H%M)" > /app/.build-version
+
 EXPOSE 3000
 
 CMD ["node", "server.js"]
