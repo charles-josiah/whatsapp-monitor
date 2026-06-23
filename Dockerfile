@@ -21,6 +21,10 @@ COPY . .
 # Generate build version: 0.1.HHMM (time of docker build)
 RUN echo "0.1.$(date +%H%M)" > /app/.build-version
 
+# Entrypoint: clean stale Chromium locks then start app
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["/entrypoint.sh"]
