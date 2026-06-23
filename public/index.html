@@ -15,7 +15,6 @@
     }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
 
-    /* HEADER */
     header { background: var(--green-dark); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.3); flex-shrink: 0; gap: 10px; }
     .header-left { display: flex; align-items: center; gap: 10px; }
     header h1 { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -28,12 +27,11 @@
     #unread-badge { display: none; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 20px; font-size: 12px; }
     #unread-badge.visible { display: flex; }
     #unread-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
-    #clear-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
+    #clear-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
     #clear-btn:hover { background: rgba(255,255,255,0.3); }
     #clear-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #sound-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 5px 9px; border-radius: 8px; cursor: pointer; font-size: 15px; }
 
-    /* QR MODAL */
     #qr-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
     #qr-modal.show { display: flex; }
     #qr-box { background: white; border-radius: 16px; padding: 28px; text-align: center; max-width: 340px; width: 90%; }
@@ -41,7 +39,6 @@
     #qr-box p { color: var(--gray); font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
     #qr-img { width: 200px; height: 200px; border: 2px solid #eee; border-radius: 8px; }
 
-    /* TABS */
     nav { background: white; display: flex; border-bottom: 1px solid #ddd; flex-shrink: 0; overflow-x: auto; }
     .tab { padding: 11px 16px; font-size: 12px; font-weight: 600; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
     .tab:hover { color: var(--green-dark); }
@@ -50,23 +47,21 @@
     .tab-badge.red { background: var(--red); }
     .tab-badge.blue { background: var(--blue); }
     .tab-badge.yellow { background: var(--yellow); color: #111; }
+    .tab-badge.gray { background: var(--gray); }
 
-    /* FEED */
     main { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
     .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); gap: 10px; padding: 40px; text-align: center; }
     .empty svg { width: 44px; height: 44px; opacity: 0.3; }
 
-    /* THREAD CARD */
     .thread-card { background: white; border-radius: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.3s ease; overflow: hidden; }
     .thread-card.followed { box-shadow: 0 0 0 2px var(--orange), var(--shadow); }
-    .thread-card.all-read { opacity: 0.55; }
+    .thread-card.is-read { opacity: 0.7; border-left-color: #ccc !important; }
     .thread-card.direct { border-left-color: var(--blue); }
     .thread-card.mention { border-left-color: var(--red); }
     .thread-card.eximio { border-left-color: var(--green); }
     .thread-card.pendente { border-left-color: var(--yellow); }
     @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
 
-    /* THREAD HEADER */
     .thread-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; gap: 8px; border-bottom: 1px solid #f0f0f0; cursor: pointer; user-select: none; }
     .thread-header:hover { background: #fafafa; }
     .thread-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
@@ -86,9 +81,8 @@
     .collapse-icon { font-size: 11px; color: var(--gray); margin-left: 2px; transition: transform 0.2s; }
     .collapse-icon.open { transform: rotate(90deg); }
 
-    /* THREAD MESSAGES */
     .thread-messages { border-bottom: 1px solid #f0f0f0; }
-    .thread-msg { display: flex; gap: 0; padding: 6px 14px; border-bottom: 1px solid #f5f5f5; position: relative; }
+    .thread-msg { display: flex; gap: 0; padding: 6px 14px; border-bottom: 1px solid #f5f5f5; }
     .thread-msg:last-child { border-bottom: none; }
     .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 10px; flex-shrink: 0; padding-top: 3px; }
     .tree-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; margin-top: 3px; }
@@ -100,9 +94,7 @@
     .msg-sender-sm { font-size: 11px; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
     .msg-time-sm { font-size: 10px; color: var(--gray); }
     .msg-body-sm { font-size: 13px; color: var(--text); line-height: 1.45; word-break: break-word; }
-    .msg-body-sm.media { color: var(--gray); font-style: italic; }
 
-    /* THREAD REPLY */
     .thread-reply { display: flex; gap: 8px; padding: 8px 14px; align-items: center; }
     .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 6px 14px; font-size: 12px; outline: none; transition: border 0.2s; }
     .reply-input:focus { border-color: var(--green-dark); }
@@ -110,19 +102,18 @@
     .reply-btn:hover { background: var(--green); }
     .reply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* TOAST */
     #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
     #toast.show { opacity: 1; }
   </style>
 </head>
 <body>
-<div id="qr-modal"><div id="qr-box"><h2>Connect WhatsApp</h2><p>Open WhatsApp on your phone &rarr; Menu &rarr; Linked devices &rarr; Link a device</p><img id="qr-img" src="" alt="QR Code" /></div></div>
+<div id="qr-modal"><div id="qr-box"><h2>Connect WhatsApp</h2><p>Open WhatsApp &rarr; Linked devices &rarr; Link a device</p><img id="qr-img" src="" alt="QR" /></div></div>
 <div id="toast"></div>
 
 <header>
   <div class="header-left">
     <h1>
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.116 1.523 5.847L.054 23.5l5.805-1.521A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm6.32 17.116c-.267.75-1.334 1.375-2.177 1.558-.58.123-1.337.22-3.882-.834-3.262-1.34-5.368-4.646-5.529-4.86-.153-.214-1.29-1.718-1.29-3.276 0-1.558.815-2.323 1.103-2.638.267-.29.582-.363.776-.363.194 0 .388.002.558.01.18.008.42-.068.656.502.248.594.843 2.057.916 2.207.073.15.122.327.024.532-.099.205-.148.33-.293.508-.145.178-.305.397-.436.533-.145.15-.296.313-.127.615.169.302.748 1.233 1.606 1.997 1.104.986 2.034 1.29 2.33 1.435.297.145.47.12.642-.073.17-.194.733-.854.93-1.147.194-.293.39-.242.656-.145.267.097 1.7.8 1.99.946.29.145.484.218.556.34.073.122.073.708-.194 1.457z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.116 1.523 5.847L.054 23.5l5.805-1.521A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm6.32 17.116c-.267.75-1.334 1.375-2.177 1.558-.58.123-1.337.22-3.882-.834-3.262-1.34-5.368-4.646-5.529-4.86-.153-.214-1.29-1.718-1.29-3.276 0-1.558.815-2.323 1.103-2.638.267-.29.582-.363.776-.363.194 0 .388.002.558.01.18.008.42-.068.656.502.248.594.843 2.057.916 2.207.073.15.122.327.024.532-.099.205-.148.33-.293.508-.145.178-.305.397-.436.533-.145.15-.296.313-.127.615.169.302.748 1.233 1.606 1.997 1.104.986 2.034 1.29 2.33 1.435.297.145.47.12.642-.073.17-.194.733-.854.93-1.147.194-.293.39-.242.656-.145.267.097 1.7.8 1.99.946.29.145.484.218.556.34.073.122.073.708-.194 1.457z"/></svg>
       WhatsApp Monitor
       <span id="app-version">v0.1.dev</span>
     </h1>
@@ -142,6 +133,7 @@
   <div class="tab" data-tab="eximio">&#11088; Eximio <span class="tab-badge" id="badge-eximio">0</span></div>
   <div class="tab" data-tab="pendente">&#9203; Pending <span class="tab-badge yellow" id="badge-pendente">0</span></div>
   <div class="tab" data-tab="followed">&#128992; Following <span class="tab-badge" id="badge-followed" style="background:var(--orange)">0</span></div>
+  <div class="tab" data-tab="read">&#9989; Read <span class="tab-badge gray" id="badge-read">0</span></div>
 </nav>
 
 <main id="feed">
@@ -156,20 +148,16 @@
   const socket = io();
   let currentTab = 'all', soundEnabled = true;
 
-  // threads: Map<chatId, { chatId, chatName, category, labels, followed, allRead, messages: [] }>
+  // threads: Map<chatId, thread>
   const threads = new Map();
-  // threadOrder: chatIds ordered by most recent message (front = newest)
-  const threadOrder = [];
+  const threadOrder = []; // newest first
+  const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0, read:0 };
 
-  // counts per category (thread-based)
-  const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0 };
-
-  // Load build version
   fetch('/api/version').then(r=>r.json()).then(d=>{
-    document.getElementById('app-version').textContent = 'v'+d.version;
+    document.getElementById('app-version').textContent='v'+d.version;
   }).catch(()=>{});
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
+  // ─── Helpers ───────────────────────────────────────────────────────────────
   function playNotif() {
     if (!soundEnabled) return;
     try {
@@ -182,21 +170,18 @@
       osc.start(); osc.stop(ctx.currentTime+0.4);
     } catch(e){}
   }
-
-  document.getElementById('sound-btn').addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    document.getElementById('sound-btn').innerHTML = soundEnabled ? '&#128276;' : '&#128277;';
+  document.getElementById('sound-btn').addEventListener('click',()=>{
+    soundEnabled=!soundEnabled;
+    document.getElementById('sound-btn').innerHTML=soundEnabled?'&#128276;':'&#128277;';
   });
-
-  function toast(msg, d=2500) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    setTimeout(()=>el.classList.remove('show'), d);
+  function toast(msg,d=2500){
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),d);
   }
-
-  function formatTime(iso) { return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
-  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function tagLabel(c) { return {direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
+  function formatTime(iso){ return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function tagLabel(c){ return {direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
 
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.addEventListener('click',()=>{
@@ -205,83 +190,103 @@
     });
   });
 
-  // ─── Thread model ────────────────────────────────────────────────────────────
+  // ─── Thread model ──────────────────────────────────────────────────────────
   function addMessageToThread(msg, isNew) {
     let thread = threads.get(msg.chatId);
     if (!thread) {
-      thread = {
-        chatId: msg.chatId,
-        chatName: msg.chatName,
-        category: msg.category,
-        labels: msg.labels,
-        followed: msg.followed || false,
-        messages: [],
-        newCount: 0
-      };
+      thread = { chatId:msg.chatId, chatName:msg.chatName, category:msg.category,
+                 labels:msg.labels, followed:false, markedRead:false, messages:[], newCount:0 };
       threads.set(msg.chatId, thread);
       threadOrder.unshift(msg.chatId);
-      // count new thread
-      if (!msg.read) {
-        counts[msg.category] = (counts[msg.category]||0)+1;
+    } else if (isNew) {
+      const idx = threadOrder.indexOf(msg.chatId);
+      if (idx > 0) { threadOrder.splice(idx,1); threadOrder.unshift(msg.chatId); }
+      // new message arrives — unmark as read, move back to active
+      if (thread.markedRead) {
+        thread.markedRead = false;
+        counts.read = Math.max(0, counts.read-1);
+        counts[thread.category]=(counts[thread.category]||0)+1;
         counts.all++;
-      }
-    } else {
-      // Move to front if new message
-      if (isNew) {
-        const idx = threadOrder.indexOf(msg.chatId);
-        if (idx > 0) { threadOrder.splice(idx,1); threadOrder.unshift(msg.chatId); }
+        updateBadges();
       }
     }
     thread.messages.push(msg);
-    if (isNew && !msg.read) thread.newCount = (thread.newCount||0)+1;
+    if (isNew && !msg.read) thread.newCount=(thread.newCount||0)+1;
     return thread;
   }
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  function markThreadRead(chatId) {
+    const thread = threads.get(chatId);
+    if (!thread || thread.markedRead) return;
+    thread.markedRead = true;
+    thread.newCount = 0;
+    thread.messages.forEach(m=>m.read=true);
+    // adjust counts
+    counts[thread.category] = Math.max(0,(counts[thread.category]||0)-1);
+    counts.all = Math.max(0, counts.all-1);
+    counts.read++;
+    updateBadges();
+    // remove from current view (unless on read tab) and re-render
+    if (currentTab !== 'read') {
+      const card = document.querySelector(`.thread-card[data-chat-id="${CSS.escape(chatId)}"]`);
+      if (card) {
+        card.style.transition='opacity 0.3s, transform 0.3s';
+        card.style.opacity='0'; card.style.transform='translateX(10px)';
+        setTimeout(()=>card.remove(), 300);
+        checkEmpty();
+      }
+    }
+  }
+
+  function checkEmpty() {
+    setTimeout(()=>{
+      const feed=document.getElementById('feed');
+      const hasCards = [...feed.children].some(c=>c!==document.getElementById('empty-state'));
+      document.getElementById('empty-state').style.display = hasCards?'none':'flex';
+    }, 350);
+  }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
   function getFilteredThreadIds() {
-    return threadOrder.filter(chatId => {
-      const t = threads.get(chatId);
-      if (!t) return false;
-      if (currentTab === 'all') return true;
-      if (currentTab === 'followed') return t.followed;
-      return t.category === currentTab;
+    return threadOrder.filter(chatId=>{
+      const t=threads.get(chatId); if(!t) return false;
+      if (currentTab==='read') return t.markedRead;
+      if (t.markedRead) return false; // hide from all other tabs
+      if (currentTab==='all') return true;
+      if (currentTab==='followed') return t.followed;
+      return t.category===currentTab;
     });
   }
 
   function renderFeed() {
-    const feed = document.getElementById('feed');
-    const empty = document.getElementById('empty-state');
+    const feed=document.getElementById('feed'), empty=document.getElementById('empty-state');
     Array.from(feed.children).forEach(c=>{ if(c!==empty) c.remove(); });
-    const ids = getFilteredThreadIds();
+    const ids=getFilteredThreadIds();
     if (!ids.length) { empty.style.display='flex'; return; }
     empty.style.display='none';
-    ids.forEach(chatId => {
-      const t = threads.get(chatId);
-      if (t) feed.appendChild(buildThreadCard(t));
-    });
+    ids.forEach(chatId=>{ const t=threads.get(chatId); if(t) feed.appendChild(buildThreadCard(t)); });
   }
 
   function buildThreadCard(thread) {
     const card = document.createElement('div');
-    card.className = `thread-card ${thread.category}${thread.followed?' followed':''}${thread.allRead?' all-read':''}`;
-    card.dataset.chatId = thread.chatId;
+    card.className=`thread-card ${thread.category}${thread.followed?' followed':''}${thread.markedRead?' is-read':''}`;
+    card.dataset.chatId=thread.chatId;
 
-    const allRead = thread.messages.every(m=>m.read);
-    const newCount = thread.newCount || 0;
+    const newCount=thread.newCount||0;
 
     // Header
-    const header = document.createElement('div');
-    header.className = 'thread-header';
-    header.innerHTML = `
+    const header=document.createElement('div');
+    header.className='thread-header';
+    header.innerHTML=`
       <div class="thread-meta">
         <span class="msg-tag tag-${thread.category}">${tagLabel(thread.category)}</span>
         <span class="thread-name">${thread.category==='direct'?'&#128172; ':'&#128101; '}${esc(thread.chatName)}</span>
-        ${newCount>0?`<span class="new-pill">${newCount} new</span>`:''}
+        ${newCount>0&&!thread.markedRead?`<span class="new-pill">${newCount} new</span>`:''}
       </div>
       <div class="thread-controls">
         <span class="msg-count">${thread.messages.length} msg${thread.messages.length!==1?'s':''}</span>
         <label class="action-check" onclick="event.stopPropagation()">
-          <input type="checkbox" class="read-check" ${allRead?'checked':''} /> Mark read
+          <input type="checkbox" class="read-check" ${thread.markedRead?'checked':''} /> Mark read
         </label>
         <label class="action-check follow-check" onclick="event.stopPropagation()">
           <input type="checkbox" class="follow-check-input" ${thread.followed?'checked':''} /> Follow
@@ -289,16 +294,16 @@
         <span class="collapse-icon open">&#9654;</span>
       </div>`;
 
-    // Messages list
-    const msgList = document.createElement('div');
-    msgList.className = 'thread-messages';
-    thread.messages.forEach((msg, i) => {
-      const row = document.createElement('div');
-      row.className = 'thread-msg';
-      const isLast = i === thread.messages.length-1;
-      row.innerHTML = `
+    // Messages
+    const msgList=document.createElement('div');
+    msgList.className='thread-messages';
+    thread.messages.forEach((msg,i)=>{
+      const row=document.createElement('div');
+      row.className='thread-msg';
+      const isLast=i===thread.messages.length-1;
+      row.innerHTML=`
         <div class="tree-line">
-          <div class="tree-dot${!msg.read?' new':''}"></div>
+          <div class="tree-dot${(!msg.read&&!thread.markedRead)?' new':''}"></div>
           ${!isLast?'<div class="tree-vline"></div>':''}
         </div>
         <div class="msg-content">
@@ -306,129 +311,125 @@
             <span class="msg-sender-sm">${esc(msg.sender)}</span>
             <span class="msg-time-sm">${formatTime(msg.timestamp)}</span>
           </div>
-          <div class="msg-body-sm${msg.hasMedia&&!msg.body?' media':''}">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div>
+          <div class="msg-body-sm">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div>
         </div>`;
       msgList.appendChild(row);
     });
 
-    // Reply area
-    const replyArea = document.createElement('div');
-    replyArea.className = 'thread-reply';
-    replyArea.innerHTML = `<input class="reply-input" type="text" placeholder="Reply to ${esc(thread.chatName)}..." /><button class="reply-btn">Send &#10148;</button>`;
+    // Reply
+    const replyArea=document.createElement('div');
+    replyArea.className='thread-reply';
+    replyArea.innerHTML=`<input class="reply-input" type="text" placeholder="Reply to ${esc(thread.chatName)}..." /><button class="reply-btn">Send &#10148;</button>`;
 
     card.appendChild(header);
     card.appendChild(msgList);
     card.appendChild(replyArea);
 
-    // Collapse toggle
-    const collapseIcon = header.querySelector('.collapse-icon');
-    header.addEventListener('click', () => {
-      const open = msgList.style.display !== 'none';
-      msgList.style.display = open ? 'none' : '';
-      replyArea.style.display = open ? 'none' : '';
-      collapseIcon.classList.toggle('open', !open);
+    // Collapse
+    const collapseIcon=header.querySelector('.collapse-icon');
+    header.addEventListener('click',()=>{
+      const open=msgList.style.display!=='none';
+      msgList.style.display=open?'none':'';
+      replyArea.style.display=open?'none':'';
+      collapseIcon.classList.toggle('open',!open);
     });
 
-    // Mark read
-    header.querySelector('.read-check').addEventListener('change', async e => {
+    // Mark read → move to Read tab
+    header.querySelector('.read-check').addEventListener('change', async e=>{
       if (e.target.checked) {
         await doMarkRead(thread.chatId);
-        thread.messages.forEach(m=>m.read=true);
-        thread.newCount=0;
-        card.classList.add('all-read');
-        msgList.querySelectorAll('.tree-dot').forEach(d=>d.classList.remove('new'));
-        const pill = header.querySelector('.new-pill');
-        if (pill) pill.remove();
+        markThreadRead(thread.chatId);
+        if (currentTab==='read') renderFeed(); // refresh read tab
+      } else {
+        // uncheck: move back (rare use case)
+        thread.markedRead=false;
+        counts.read=Math.max(0,counts.read-1);
+        counts[thread.category]=(counts[thread.category]||0)+1;
+        counts.all++;
+        updateBadges();
+        renderFeed();
       }
     });
 
     // Follow
-    header.querySelector('.follow-check-input').addEventListener('change', e => {
-      thread.followed = e.target.checked;
-      card.classList.toggle('followed', thread.followed);
-      counts.followed = [...threads.values()].filter(t=>t.followed).length;
-      const el = document.getElementById('badge-followed'); if(el) el.textContent=counts.followed;
-      toast(thread.followed ? '&#128992; Following this conversation' : 'Unfollowed');
-      if (currentTab==='followed') renderFeed();
+    header.querySelector('.follow-check-input').addEventListener('change', e=>{
+      thread.followed=e.target.checked;
+      card.classList.toggle('followed',thread.followed);
+      counts.followed=[...threads.values()].filter(t=>t.followed).length;
+      const el=document.getElementById('badge-followed'); if(el) el.textContent=counts.followed;
+      toast(thread.followed?'&#128992; Following':'Unfollowed');
+      if(currentTab==='followed') renderFeed();
     });
 
-    // Send reply
-    const replyInput = replyArea.querySelector('.reply-input');
-    const replyBtn = replyArea.querySelector('.reply-btn');
-    replyInput.addEventListener('keydown', e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(thread.chatId,replyInput,replyBtn);} });
+    // Reply
+    const replyInput=replyArea.querySelector('.reply-input');
+    const replyBtn=replyArea.querySelector('.reply-btn');
+    replyInput.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(thread.chatId,replyInput,replyBtn);} });
     replyBtn.addEventListener('click',()=>doReply(thread.chatId,replyInput,replyBtn));
 
     return card;
   }
 
-  // ─── API calls ───────────────────────────────────────────────────────────────
-  async function doReply(chatId, input, btn) {
-    const text = input.value.trim(); if(!text) return;
+  // ─── API ───────────────────────────────────────────────────────────────────
+  async function doReply(chatId,input,btn){
+    const text=input.value.trim(); if(!text) return;
     btn.disabled=true; btn.textContent='...';
     try {
-      const r = await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,message:text})});
-      if(r.ok){input.value='';toast('&#9989; Message sent!');}else{toast('&#10060; Failed to send');}
-    } catch(e){toast('&#10060; '+e.message);}
+      const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,message:text})});
+      if(r.ok){input.value='';toast('&#9989; Sent!');}else{toast('&#10060; Failed');}
+    }catch(e){toast('&#10060; '+e.message);}
     btn.disabled=false; btn.innerHTML='Send &#10148;';
   }
-
-  async function doMarkRead(chatId) {
-    try {
-      await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})});
-      toast('&#9989; Marked as read');
-    } catch(e){toast('&#10060; '+e.message);}
+  async function doMarkRead(chatId){
+    try { await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})}); }
+    catch(e){}
   }
-
-  document.getElementById('clear-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('clear-btn');
+  document.getElementById('clear-btn').addEventListener('click',async()=>{
+    const btn=document.getElementById('clear-btn');
     btn.disabled=true; btn.innerHTML='&#9203; Clearing...';
     try {
-      const r = await fetch('/api/clear-all',{method:'POST'});
-      const data = await r.json();
-      if(r.ok) toast(`&#9989; Cleared ${data.cleared} chats, kept ${data.skipped} monitored`);
+      const r=await fetch('/api/clear-all',{method:'POST'});
+      const data=await r.json();
+      if(r.ok) toast(`&#9989; Cleared ${data.cleared}, kept ${data.skipped}`);
       else toast('&#10060; '+data.error);
-    } catch(e){toast('&#10060; '+e.message);}
+    }catch(e){toast('&#10060; '+e.message);}
     btn.disabled=false; btn.innerHTML='&#129529; Clear All';
   });
 
-  function updateBadges() {
+  function updateBadges(){
     Object.keys(counts).forEach(k=>{ const el=document.getElementById(`badge-${k}`); if(el) el.textContent=counts[k]; });
   }
 
-  // ─── Socket events ───────────────────────────────────────────────────────────
-  socket.on('status', data=>{
+  // ─── Socket ────────────────────────────────────────────────────────────────
+  socket.on('status',data=>{
     document.getElementById('status-dot').className='status-dot'+(data.connected?' online':'');
     document.getElementById('status-text').textContent=data.message;
     if(data.connected) document.getElementById('qr-modal').classList.remove('show');
   });
-  socket.on('qr', url=>{ document.getElementById('qr-img').src=url; document.getElementById('qr-modal').classList.add('show'); });
-  socket.on('stats', data=>{
-    const badge=document.getElementById('unread-badge');
+  socket.on('qr',url=>{ document.getElementById('qr-img').src=url; document.getElementById('qr-modal').classList.add('show'); });
+  socket.on('stats',data=>{
     document.getElementById('unread-count').textContent=data.groupsUnread;
-    badge.classList.toggle('visible', data.groupsUnread>0);
+    document.getElementById('unread-badge').classList.toggle('visible',data.groupsUnread>0);
   });
 
-  socket.on('history', msgs=>{
-    // msgs come newest-first from server; process oldest-first for proper order
-    [...msgs].reverse().forEach(m=>addMessageToThread(m, false));
-    // recompute counts
+  socket.on('history',msgs=>{
+    [...msgs].reverse().forEach(m=>addMessageToThread(m,false));
     Object.keys(counts).forEach(k=>counts[k]=0);
     threads.forEach(t=>{
-      if(!t.messages.every(m=>m.read)){
-        counts[t.category]=(counts[t.category]||0)+1;
-        counts.all++;
-      }
+      if(t.markedRead){ counts.read++; return; }
+      counts[t.category]=(counts[t.category]||0)+1;
+      counts.all++;
       if(t.followed) counts.followed++;
     });
     updateBadges();
     renderFeed();
   });
 
-  socket.on('message', msg=>{
+  socket.on('message',msg=>{
     msg.read=false; msg.followed=false;
-    const isNewThread = !threads.has(msg.chatId);
-    addMessageToThread(msg, true);
-    if (isNewThread) {
+    const isNewThread=!threads.has(msg.chatId);
+    addMessageToThread(msg,true);
+    if(isNewThread && !threads.get(msg.chatId).markedRead){
       counts[msg.category]=(counts[msg.category]||0)+1;
       counts.all++;
       updateBadges();
@@ -436,19 +437,18 @@
     playNotif();
     if(Notification.permission==='granted') new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
 
-    // Update existing card or re-render
-    const existingCard = document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
-    if (existingCard && (currentTab==='all'||currentTab===msg.category)) {
-      // Move card to top and rebuild
+    const thread=threads.get(msg.chatId);
+    if(thread.markedRead) return; // don't show in feed if already in read tab
+
+    const existingCard=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
+    if(existingCard&&(currentTab==='all'||currentTab===msg.category)){
       existingCard.remove();
-      const feed = document.getElementById('feed');
-      const thread = threads.get(msg.chatId);
-      feed.insertBefore(buildThreadCard(thread), feed.firstChild);
-    } else if (!existingCard && (currentTab==='all'||currentTab===msg.category)) {
-      const feed = document.getElementById('feed');
+      const feed=document.getElementById('feed');
+      feed.insertBefore(buildThreadCard(thread),feed.firstChild);
+    } else if(!existingCard&&(currentTab==='all'||currentTab===msg.category)){
+      const feed=document.getElementById('feed');
       document.getElementById('empty-state').style.display='none';
-      const thread = threads.get(msg.chatId);
-      feed.insertBefore(buildThreadCard(thread), feed.firstChild);
+      feed.insertBefore(buildThreadCard(thread),feed.firstChild);
     }
   });
 
