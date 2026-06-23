@@ -138,9 +138,11 @@ async function emitStats() {
   if (!clientReady) return;
   try {
     const chats = await client.getChats();
+    const groups = chats.filter(c => c.isGroup);
+    const groupsTotal = groups.length;
+    const groupsUnread = groups.filter(c => c.unreadCount > 0).length;
     const totalUnread = chats.filter(c => c.unreadCount > 0).length;
-    const groupsUnread = chats.filter(c => c.isGroup && c.unreadCount > 0).length;
-    io.emit('stats', { totalUnread, groupsUnread });
+    io.emit('stats', { totalUnread, groupsUnread, groupsTotal });
   } catch (e) {
     console.error('Error fetching stats:', e);
   }
@@ -148,7 +150,7 @@ async function emitStats() {
 
 setInterval(emitStats, 30000);
 
-// ─── API ───────────────────────────────────────────────────────────────────────
+// ─── API ─────────────────────────────────────────────────────────────────────
 
 app.get('/api/version', (req, res) => {
   res.json({ version: BUILD_VERSION });
@@ -158,9 +160,11 @@ app.get('/api/stats', async (req, res) => {
   if (!clientReady) return res.status(503).json({ error: 'WhatsApp not connected' });
   try {
     const chats = await client.getChats();
+    const groups = chats.filter(c => c.isGroup);
     res.json({
       totalUnread: chats.filter(c => c.unreadCount > 0).length,
-      groupsUnread: chats.filter(c => c.isGroup && c.unreadCount > 0).length
+      groupsUnread: groups.filter(c => c.unreadCount > 0).length,
+      groupsTotal: groups.length
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
