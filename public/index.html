@@ -9,107 +9,119 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --green: #25D366; --green-dark: #128C7E; --green-light: #DCF8C6;
-      --bg: #ECE5DD; --white: #ffffff; --gray: #667781; --text: #111B21;
+      --bg: #ECE5DD; --white: #fff; --gray: #667781; --text: #111B21;
       --red: #EA4335; --blue: #1A73E8; --yellow: #F9AB00;
-      --shadow: 0 1px 3px rgba(0,0,0,0.12);
+      --orange: #E8710A; --shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
-    header { background: var(--green-dark); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.3); flex-shrink: 0; }
-    header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-    header h1 svg { width: 24px; height: 24px; fill: white; }
-    #status-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 20px; }
-    #status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff6b6b; transition: background 0.3s; }
+    header { background: var(--green-dark); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.3); flex-shrink: 0; gap: 10px; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    header h1 { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    header h1 svg { width: 22px; height: 22px; fill: white; flex-shrink: 0; }
+    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    #status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 20px; }
+    #status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; transition: background 0.3s; flex-shrink: 0; }
     #status-dot.online { background: #51e06e; }
+    #unread-badge { display: none; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+    #unread-badge.visible { display: flex; }
+    #unread-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
+    #clear-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
+    #clear-btn:hover { background: rgba(255,255,255,0.3); }
+    #clear-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #sound-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 5px 9px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+    #sound-btn:hover { background: rgba(255,255,255,0.25); }
     #qr-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
     #qr-modal.show { display: flex; }
-    #qr-box { background: white; border-radius: 16px; padding: 32px; text-align: center; max-width: 360px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-    #qr-box h2 { color: var(--green-dark); margin-bottom: 8px; font-size: 20px; }
-    #qr-box p { color: var(--gray); font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
-    #qr-img { width: 220px; height: 220px; border: 2px solid #eee; border-radius: 8px; }
+    #qr-box { background: white; border-radius: 16px; padding: 28px; text-align: center; max-width: 340px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    #qr-box h2 { color: var(--green-dark); margin-bottom: 8px; font-size: 18px; }
+    #qr-box p { color: var(--gray); font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
+    #qr-img { width: 200px; height: 200px; border: 2px solid #eee; border-radius: 8px; }
     nav { background: white; display: flex; border-bottom: 1px solid #ddd; flex-shrink: 0; overflow-x: auto; }
-    .tab { padding: 12px 20px; font-size: 13px; font-weight: 600; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .tab { padding: 11px 16px; font-size: 12px; font-weight: 600; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
     .tab:hover { color: var(--green-dark); }
     .tab.active { color: var(--green-dark); border-bottom-color: var(--green-dark); }
-    .badge { background: var(--green); color: white; border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 700; min-width: 18px; text-align: center; }
-    .badge.red { background: var(--red); }
-    .badge.blue { background: var(--blue); }
-    .badge.yellow { background: var(--yellow); color: #111; }
-    main { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); gap: 12px; padding: 40px; text-align: center; }
-    .empty svg { width: 48px; height: 48px; opacity: 0.3; }
-    .msg-card { background: white; border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.3s ease; position: relative; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-badge { background: var(--green); color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700; min-width: 16px; text-align: center; }
+    .tab-badge.red { background: var(--red); }
+    .tab-badge.blue { background: var(--blue); }
+    .tab-badge.yellow { background: var(--yellow); color: #111; }
+    main { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); gap: 10px; padding: 40px; text-align: center; }
+    .empty svg { width: 44px; height: 44px; opacity: 0.3; }
+    .msg-card { background: white; border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.3s ease; }
+    .msg-card.followed { box-shadow: 0 0 0 2px var(--orange), var(--shadow); }
+    .msg-card.read-done { opacity: 0.55; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
     .msg-card.direct { border-left-color: var(--blue); }
     .msg-card.mention { border-left-color: var(--red); }
     .msg-card.eximio { border-left-color: var(--green); }
     .msg-card.pendente { border-left-color: var(--yellow); }
-    .msg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-    .msg-sender { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-    .msg-group { font-size: 12px; color: var(--gray); margin-bottom: 4px; }
-    .msg-time { font-size: 11px; color: var(--gray); }
-    .msg-body { font-size: 14px; line-height: 1.5; color: var(--text); word-break: break-word; }
-    .msg-tag { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 4px; margin-right: 4px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
+    .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .msg-sender { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .msg-time { font-size: 11px; color: var(--gray); flex-shrink: 0; }
+    .msg-tag { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
     .tag-direct { background: #E8F0FE; color: var(--blue); }
     .tag-mention { background: #FCE8E6; color: var(--red); }
     .tag-eximio { background: var(--green-light); color: var(--green-dark); }
     .tag-pendente { background: #FEF3C7; color: #B45309; }
-    .new-dot { position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
-    #sound-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; }
-    #sound-btn:hover { background: rgba(255,255,255,0.25); }
+    .msg-group { font-size: 11px; color: var(--gray); margin-bottom: 4px; }
+    .msg-body { font-size: 13px; line-height: 1.5; color: var(--text); word-break: break-word; margin-bottom: 10px; }
+    .card-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .action-check { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--gray); cursor: pointer; user-select: none; }
+    .action-check input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--green-dark); }
+    .action-check.follow-check { color: var(--orange); font-weight: 600; }
+    .action-check.follow-check input { accent-color: var(--orange); }
+    .reply-area { display: flex; gap: 6px; flex: 1; min-width: 200px; }
+    .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 5px 12px; font-size: 12px; outline: none; transition: border 0.2s; }
+    .reply-input:focus { border-color: var(--green-dark); }
+    .reply-btn { background: var(--green-dark); color: white; border: none; border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+    .reply-btn:hover { background: var(--green); }
+    .reply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    #toast.show { opacity: 1; }
+    .new-dot { display: inline-block; width: 7px; height: 7px; background: var(--red); border-radius: 50%; margin-left: 4px; vertical-align: middle; }
   </style>
 </head>
 <body>
-<div id="qr-modal">
-  <div id="qr-box">
-    <h2>Connect WhatsApp</h2>
-    <p>Open WhatsApp on your phone &rarr; Menu &rarr; Linked devices &rarr; Link a device</p>
-    <img id="qr-img" src="" alt="QR Code" />
-  </div>
-</div>
+<div id="qr-modal"><div id="qr-box"><h2>Connect WhatsApp</h2><p>Open WhatsApp on your phone &rarr; Menu &rarr; Linked devices &rarr; Link a device</p><img id="qr-img" src="" alt="QR Code" /></div></div>
+<div id="toast"></div>
 <header>
-  <h1>
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.116 1.523 5.847L.054 23.5l5.805-1.521A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm6.32 17.116c-.267.75-1.334 1.375-2.177 1.558-.58.123-1.337.22-3.882-.834-3.262-1.34-5.368-4.646-5.529-4.86-.153-.214-1.29-1.718-1.29-3.276 0-1.558.815-2.323 1.103-2.638.267-.29.582-.363.776-.363.194 0 .388.002.558.01.18.008.42-.068.656.502.248.594.843 2.057.916 2.207.073.15.122.327.024.532-.099.205-.148.33-.293.508-.145.178-.305.397-.436.533-.145.15-.296.313-.127.615.169.302.748 1.233 1.606 1.997 1.104.986 2.034 1.29 2.33 1.435.297.145.47.12.642-.073.17-.194.733-.854.93-1.147.194-.293.39-.242.656-.145.267.097 1.7.8 1.99.946.29.145.484.218.556.34.073.122.073.708-.194 1.457z"/>
-    </svg>
-    WhatsApp Monitor
-  </h1>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button id="sound-btn" title="Toggle sound">&#128276;</button>
-    <div id="status-badge">
-      <div id="status-dot"></div>
-      <span id="status-text">Connecting...</span>
-    </div>
+  <div class="header-left">
+    <h1><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.116 1.523 5.847L.054 23.5l5.805-1.521A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm6.32 17.116c-.267.75-1.334 1.375-2.177 1.558-.58.123-1.337.22-3.882-.834-3.262-1.34-5.368-4.646-5.529-4.86-.153-.214-1.29-1.718-1.29-3.276 0-1.558.815-2.323 1.103-2.638.267-.29.582-.363.776-.363.194 0 .388.002.558.01.18.008.42-.068.656.502.248.594.843 2.057.916 2.207.073.15.122.327.024.532-.099.205-.148.33-.293.508-.145.178-.305.397-.436.533-.145.15-.296.313-.127.615.169.302.748 1.233 1.606 1.997 1.104.986 2.034 1.29 2.33 1.435.297.145.47.12.642-.073.17-.194.733-.854.93-1.147.194-.293.39-.242.656-.145.267.097 1.7.8 1.99.946.29.145.484.218.556.34.073.122.073.708-.194 1.457z"/></svg>WhatsApp Monitor</h1>
+  </div>
+  <div class="header-right">
+    <div id="unread-badge">&#128172; Unread groups: <span id="unread-count">0</span></div>
+    <button id="clear-btn">&#129529; Clear All</button>
+    <button id="sound-btn">&#128276;</button>
+    <div id="status-badge"><div id="status-dot"></div><span id="status-text">Connecting...</span></div>
   </div>
 </header>
 <nav>
-  <div class="tab active" data-tab="all">All <span class="badge" id="badge-all">0</span></div>
-  <div class="tab" data-tab="direct">&#128172; Direct <span class="badge blue" id="badge-direct">0</span></div>
-  <div class="tab" data-tab="mention">&#128276; @Mentions <span class="badge red" id="badge-mention">0</span></div>
-  <div class="tab" data-tab="eximio">&#11088; Eximio <span class="badge" id="badge-eximio">0</span></div>
-  <div class="tab" data-tab="pendente">&#9203; Pending <span class="badge yellow" id="badge-pendente">0</span></div>
+  <div class="tab active" data-tab="all">All <span class="tab-badge" id="badge-all">0</span></div>
+  <div class="tab" data-tab="direct">&#128172; Direct <span class="tab-badge blue" id="badge-direct">0</span></div>
+  <div class="tab" data-tab="mention">&#128276; @Mentions <span class="tab-badge red" id="badge-mention">0</span></div>
+  <div class="tab" data-tab="eximio">&#11088; Eximio <span class="tab-badge" id="badge-eximio">0</span></div>
+  <div class="tab" data-tab="pendente">&#9203; Pending <span class="tab-badge yellow" id="badge-pendente">0</span></div>
+  <div class="tab" data-tab="followed">&#128992; Following <span class="tab-badge" id="badge-followed" style="background:var(--orange)">0</span></div>
 </nav>
 <main id="feed">
   <div class="empty" id="empty-state">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <p>Waiting for messages...</p>
-    <p style="font-size:12px;">Direct messages, @mentions and Eximio/Pending labels will appear here.</p>
+    <p style="font-size:11px;margin-top:4px;">Direct messages, @mentions and Eximio/Pending labels will appear here.</p>
   </div>
 </main>
 <script>
   const socket = io();
-  let currentTab = 'all';
-  let soundEnabled = true;
-  const counts = { all: 0, direct: 0, mention: 0, eximio: 0, pendente: 0 };
+  let currentTab = 'all', soundEnabled = true;
+  const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0 };
   const allMessages = [];
 
   function playNotif() {
     if (!soundEnabled) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
       osc.frequency.value = 880; osc.type = 'sine';
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
@@ -123,88 +135,154 @@
     document.getElementById('sound-btn').innerHTML = soundEnabled ? '&#128276;' : '&#128277;';
   });
 
+  function toast(msg, d=2500) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), d);
+  }
+
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentTab = tab.dataset.tab;
-      renderFeed();
+      tab.classList.add('active'); currentTab = tab.dataset.tab; renderFeed();
     });
   });
 
-  function formatTime(iso) {
-    const d = new Date(iso);
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  }
+  function formatTime(iso) { return new Date(iso).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }); }
   function formatDate(iso) {
-    const d = new Date(iso), today = new Date();
-    if (d.toDateString() === today.toDateString()) return 'Today';
-    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    const d = new Date(iso), t = new Date();
+    if (d.toDateString() === t.toDateString()) return 'Today';
+    const y = new Date(t); y.setDate(t.getDate()-1);
+    if (d.toDateString() === y.toDateString()) return 'Yesterday';
     return d.toLocaleDateString('en-US');
   }
-  function tagLabel(cat) {
-    return { direct: 'Direct', mention: '@Mention', eximio: 'Eximio', pendente: 'Pending' }[cat] || cat;
-  }
-  function escHtml(str) {
-    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-  function createCard(msg, isNew) {
+  function tagLabel(c) { return {direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function createCard(msg, isNew=false) {
     const card = document.createElement('div');
-    card.className = `msg-card ${msg.category}`;
-    const timeStr = `${formatDate(msg.timestamp)} ${formatTime(msg.timestamp)}`;
+    card.className = `msg-card ${msg.category}${msg.followed?' followed':''}${msg.read?' read-done':''}`;
+    card.dataset.id = msg.id;
     card.innerHTML = `
-      ${isNew ? '<div class="new-dot"></div>' : ''}
-      <div class="msg-header">
-        <div class="msg-sender"><span class="msg-tag tag-${msg.category}">${tagLabel(msg.category)}</span>${escHtml(msg.sender)}</div>
-        <span class="msg-time">${timeStr}</span>
+      <div class="card-header">
+        <div class="card-meta">
+          <span class="msg-tag tag-${msg.category}">${tagLabel(msg.category)}</span>
+          <span class="msg-sender">${esc(msg.sender)}${isNew?'<span class="new-dot"></span>':''}</span>
+        </div>
+        <span class="msg-time">${formatDate(msg.timestamp)} ${formatTime(msg.timestamp)}</span>
       </div>
-      <div class="msg-group">${msg.category !== 'direct' ? '&#128101; ' + escHtml(msg.chatName) : '&#128172; Direct message'}</div>
-      <div class="msg-body">${msg.hasMedia ? '&#128206; ' : ''}${escHtml(msg.body || '[media]')}</div>`;
+      <div class="msg-group">${msg.category!=='direct'?'&#128101; '+esc(msg.chatName):'&#128172; Direct message'}</div>
+      <div class="msg-body">${msg.hasMedia?'&#128206; ':''}${esc(msg.body||'[media]')}</div>
+      <div class="card-actions">
+        <div class="reply-area">
+          <input class="reply-input" type="text" placeholder="Reply..." />
+          <button class="reply-btn">Send &#10148;</button>
+        </div>
+        <label class="action-check"><input type="checkbox" class="read-check" ${msg.read?'checked':''} /> Mark read</label>
+        <label class="action-check follow-check"><input type="checkbox" class="follow-check-input" ${msg.followed?'checked':''} /> Follow</label>
+      </div>`;
+
+    const replyBtn = card.querySelector('.reply-btn');
+    const replyInput = card.querySelector('.reply-input');
+    replyInput.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(msg.chatId,replyInput,replyBtn);} });
+    replyBtn.addEventListener('click', () => doReply(msg.chatId, replyInput, replyBtn));
+
+    card.querySelector('.read-check').addEventListener('change', async e => {
+      if(e.target.checked){ await doMarkRead(msg.chatId); card.classList.add('read-done'); msg.read=true; }
+    });
+
+    card.querySelector('.follow-check-input').addEventListener('change', e => {
+      msg.followed = e.target.checked;
+      card.classList.toggle('followed', msg.followed);
+      counts.followed = allMessages.filter(m=>m.followed).length;
+      const el = document.getElementById('badge-followed'); if(el) el.textContent = counts.followed;
+      toast(msg.followed ? '&#128992; Following this conversation' : 'Unfollowed');
+      if(currentTab==='followed') renderFeed();
+    });
+
+    if(isNew) setTimeout(()=>{ const d=card.querySelector('.new-dot'); if(d) d.remove(); }, 3000);
     return card;
   }
-  function renderFeed() {
-    const feed = document.getElementById('feed'), empty = document.getElementById('empty-state');
-    const msgs = currentTab === 'all' ? allMessages : allMessages.filter(m => m.category === currentTab);
-    Array.from(feed.children).forEach(c => { if (c !== empty) c.remove(); });
-    if (!msgs.length) { empty.style.display = 'flex'; return; }
-    empty.style.display = 'none';
-    msgs.forEach(msg => feed.appendChild(createCard(msg, false)));
+
+  async function doReply(chatId, input, btn) {
+    const text = input.value.trim(); if(!text) return;
+    btn.disabled=true; btn.textContent='...';
+    try {
+      const r = await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,message:text})});
+      if(r.ok){input.value='';toast('&#9989; Message sent!');}else{toast('&#10060; Failed to send');}
+    } catch(e){toast('&#10060; '+e.message);}
+    btn.disabled=false; btn.innerHTML='Send &#10148;';
   }
-  function updateBadge(cat) {
-    counts[cat] = (counts[cat] || 0) + 1; counts.all++;
-    const el = document.getElementById(`badge-${cat}`);
-    if (el) el.textContent = counts[cat];
-    document.getElementById('badge-all').textContent = counts.all;
+
+  async function doMarkRead(chatId) {
+    try {
+      await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})});
+      toast('&#9989; Marked as read');
+    } catch(e){toast('&#10060; '+e.message);}
   }
-  socket.on('status', data => {
-    document.getElementById('status-dot').className = 'status-dot' + (data.connected ? ' online' : '');
-    document.getElementById('status-text').textContent = data.message;
-    if (data.connected) document.getElementById('qr-modal').classList.remove('show');
+
+  document.getElementById('clear-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('clear-btn');
+    btn.disabled=true; btn.textContent='&#9203; Clearing...';
+    try {
+      const r = await fetch('/api/clear-all',{method:'POST'});
+      const data = await r.json();
+      if(r.ok) toast(`&#9989; Cleared ${data.cleared} chats, kept ${data.skipped} monitored`);
+      else toast('&#10060; '+data.error);
+    } catch(e){toast('&#10060; '+e.message);}
+    btn.disabled=false; btn.innerHTML='&#129529; Clear All';
   });
-  socket.on('qr', url => {
-    document.getElementById('qr-img').src = url;
-    document.getElementById('qr-modal').classList.add('show');
+
+  function getFiltered() {
+    if(currentTab==='all') return allMessages;
+    if(currentTab==='followed') return allMessages.filter(m=>m.followed);
+    return allMessages.filter(m=>m.category===currentTab);
+  }
+
+  function renderFeed() {
+    const feed=document.getElementById('feed'), empty=document.getElementById('empty-state');
+    const msgs=getFiltered();
+    Array.from(feed.children).forEach(c=>{if(c!==empty)c.remove();});
+    if(!msgs.length){empty.style.display='flex';return;}
+    empty.style.display='none';
+    msgs.forEach(msg=>feed.appendChild(createCard(msg,false)));
+  }
+
+  function updateBadge(cat) {
+    counts[cat]=(counts[cat]||0)+1; counts.all++;
+    const el=document.getElementById(`badge-${cat}`); if(el) el.textContent=counts[cat];
+    document.getElementById('badge-all').textContent=counts.all;
+  }
+
+  socket.on('status', data => {
+    document.getElementById('status-dot').className='status-dot'+(data.connected?' online':'');
+    document.getElementById('status-text').textContent=data.message;
+    if(data.connected) document.getElementById('qr-modal').classList.remove('show');
+  });
+  socket.on('qr', url => { document.getElementById('qr-img').src=url; document.getElementById('qr-modal').classList.add('show'); });
+  socket.on('stats', data => {
+    const badge=document.getElementById('unread-badge'), count=document.getElementById('unread-count');
+    count.textContent=data.groupsUnread;
+    badge.classList.toggle('visible', data.groupsUnread>0);
   });
   socket.on('history', msgs => {
-    msgs.forEach(m => allMessages.push(m));
-    Object.keys(counts).forEach(k => counts[k] = 0);
-    allMessages.forEach(m => { counts[m.category] = (counts[m.category]||0)+1; counts.all++; });
-    Object.keys(counts).forEach(k => { const el = document.getElementById(`badge-${k}`); if(el) el.textContent = counts[k]; });
+    msgs.forEach(m=>allMessages.push(m));
+    Object.keys(counts).forEach(k=>counts[k]=0);
+    allMessages.forEach(m=>{ counts[m.category]=(counts[m.category]||0)+1; counts.all++; if(m.followed)counts.followed++; });
+    Object.keys(counts).forEach(k=>{ const el=document.getElementById(`badge-${k}`); if(el) el.textContent=counts[k]; });
     renderFeed();
   });
   socket.on('message', msg => {
+    msg.read=false; msg.followed=false;
     allMessages.unshift(msg); updateBadge(msg.category); playNotif();
-    if (Notification.permission === 'granted') new Notification(`WhatsApp — ${msg.sender}`, { body: msg.body || '[media]' });
-    if (currentTab === 'all' || currentTab === msg.category) {
-      const feed = document.getElementById('feed');
-      document.getElementById('empty-state').style.display = 'none';
-      const card = createCard(msg, true);
-      feed.insertBefore(card, feed.firstChild);
-      setTimeout(() => { const d = card.querySelector('.new-dot'); if(d) d.remove(); }, 3000);
+    if(Notification.permission==='granted') new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
+    if(currentTab==='all'||currentTab===msg.category){
+      const feed=document.getElementById('feed');
+      document.getElementById('empty-state').style.display='none';
+      feed.insertBefore(createCard(msg,true),feed.firstChild);
     }
   });
-  if (Notification.permission === 'default') Notification.requestPermission();
+  if(Notification.permission==='default') Notification.requestPermission();
 </script>
 </body>
 </html>
