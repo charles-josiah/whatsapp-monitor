@@ -27,6 +27,7 @@
     #unread-badge { display: none; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 20px; font-size: 12px; }
     #unread-badge.visible { display: flex; }
     #unread-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
+    #groups-total { background: rgba(255,255,255,0.25); color: white; border-radius: 10px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
     #clear-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
     #clear-btn:hover { background: rgba(255,255,255,0.3); }
     #clear-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -53,7 +54,6 @@
     .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); gap: 10px; padding: 40px; text-align: center; }
     .empty svg { width: 44px; height: 44px; opacity: 0.3; }
 
-    /* Thread card */
     .thread-card { background: white; border-radius: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.25s ease; overflow: hidden; }
     .thread-card.followed { border-left-color: var(--orange) !important; }
     .thread-card.is-read { opacity: 0.65; border-left-color: #ccc !important; }
@@ -63,7 +63,6 @@
     .thread-card.pendente { border-left-color: var(--yellow); }
     @keyframes slideIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
 
-    /* Thread header */
     .thread-header { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; gap: 8px; cursor: pointer; user-select: none; }
     .thread-header:hover { background: #f7f7f7; }
     .th-left { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; }
@@ -85,11 +84,9 @@
     .chevron { font-size: 10px; color: var(--gray); transition: transform 0.2s; flex-shrink: 0; }
     .chevron.open { transform: rotate(90deg); }
 
-    /* Thread body */
     .thread-body { display: none; border-top: 1px solid #f0f0f0; }
     .thread-body.open { display: block; }
 
-    /* Message rows — received (left) */
     .thread-msgs { padding: 4px 0; }
     .thread-msg { display: flex; padding: 4px 12px; }
     .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 9px; flex-shrink: 0; padding-top: 4px; }
@@ -103,20 +100,12 @@
     .msg-time-sm { font-size: 10px; color: var(--gray); }
     .msg-body-sm { font-size: 12px; color: var(--text); line-height: 1.4; word-break: break-word; }
 
-    /* Sent messages (right) */
     .thread-msg.sent { justify-content: flex-end; }
-    .sent-bubble {
-      background: var(--green-light);
-      border-radius: 8px 0px 8px 8px;
-      padding: 5px 10px;
-      max-width: 78%;
-      text-align: right;
-    }
+    .sent-bubble { background: var(--green-light); border-radius: 8px 0px 8px 8px; padding: 5px 10px; max-width: 78%; text-align: right; }
     .sent-bubble .msg-body-sm { color: #1a3c2e; }
     .sent-bubble .msg-row-top { justify-content: flex-end; }
     .sent-bubble .msg-sender-sm { color: var(--green-dark); }
 
-    /* Reply area */
     .thread-reply { display: flex; gap: 8px; padding: 7px 12px; border-top: 1px solid #f0f0f0; }
     .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 5px 12px; font-size: 12px; outline: none; transition: border 0.2s; }
     .reply-input:focus { border-color: var(--green-dark); }
@@ -141,7 +130,7 @@
     </h1>
   </div>
   <div class="header-right">
-    <div id="unread-badge">&#128172; Unread groups: <span id="unread-count">0</span></div>
+    <div id="unread-badge">&#128172; Groups: <span id="groups-total">0</span> &middot; Unread: <span id="unread-count">0</span></div>
     <button id="clear-btn">&#129529; Clear All</button>
     <button id="sound-btn">&#128276;</button>
     <div id="status-badge"><div id="status-dot"></div><span id="status-text">Connecting...</span></div>
@@ -224,7 +213,6 @@
     } else if(isNew){
       const idx=threadOrder.indexOf(msg.chatId);
       if(idx>0){threadOrder.splice(idx,1);threadOrder.unshift(msg.chatId);}
-      // new message on read thread → unread it
       if(t.markedRead && !msg.fromMe){
         t.markedRead=false;
         counts.read=Math.max(0,counts.read-1);
@@ -237,7 +225,6 @@
     return t;
   }
 
-  // Mark read → move to Read tab
   function doMarkReadThread(chatId){
     const t=threads.get(chatId);if(!t||t.markedRead)return;
     t.markedRead=true;t.newCount=0;
@@ -253,7 +240,6 @@
     if(currentTab!=='read') slideOutCard(chatId);
   }
 
-  // Follow → move to Following tab
   function doFollowThread(chatId){
     const t=threads.get(chatId);if(!t||t.followed)return;
     t.followed=true;
@@ -266,7 +252,6 @@
     if(currentTab!=='followed') slideOutCard(chatId);
   }
 
-  // Unfollow → back to active
   function doUnfollowThread(chatId){
     const t=threads.get(chatId);if(!t||!t.followed)return;
     t.followed=false;
@@ -296,14 +281,13 @@
     },350);
   }
 
-  // ─ render
   function getFiltered(){
     return threadOrder.filter(id=>{
       const t=threads.get(id);if(!t)return false;
       if(currentTab==='read') return t.markedRead;
       if(t.markedRead) return false;
       if(currentTab==='followed') return t.followed;
-      if(t.followed) return false; // hide followed from other tabs
+      if(t.followed) return false;
       if(currentTab==='all') return true;
       return t.category===currentTab;
     });
@@ -359,7 +343,6 @@
     card.className=`thread-card ${thread.category}${thread.followed?' followed':''}${thread.markedRead?' is-read':''}`;
     card.dataset.chatId=thread.chatId;
 
-    // Header
     const hdr=document.createElement('div');
     hdr.className='thread-header';
     hdr.innerHTML=`
@@ -382,7 +365,6 @@
         <span class="chevron${isExpanded?' open':''}">&#9654;</span>
       </div>`;
 
-    // Body
     const body=document.createElement('div');
     body.className='thread-body'+(isExpanded?' open':'');
 
@@ -402,7 +384,6 @@
     card.appendChild(hdr);
     card.appendChild(body);
 
-    // Collapse toggle
     hdr.addEventListener('click',()=>{
       const opening=!body.classList.contains('open');
       body.classList.toggle('open',opening);
@@ -419,7 +400,6 @@
       }
     });
 
-    // Mark read
     hdr.querySelector('.read-check').addEventListener('change',async e=>{
       if(e.target.checked){
         await apiMarkRead(thread.chatId);
@@ -434,7 +414,6 @@
       }
     });
 
-    // Follow
     hdr.querySelector('.follow-check-input').addEventListener('change',e=>{
       if(e.target.checked){
         doFollowThread(thread.chatId);
@@ -445,7 +424,6 @@
       }
     });
 
-    // Reply — adds sent bubble immediately
     const inp=replyArea.querySelector('.reply-input'),btn=replyArea.querySelector('.reply-btn');
     async function sendReply(){
       const text=inp.value.trim();if(!text)return;
@@ -454,15 +432,12 @@
         const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId,message:text})});
         if(r.ok){
           inp.value='';
-          // Add sent bubble to thread immediately
           const sentMsg={id:'local-'+Date.now(),sender:'You',body:text,
                          timestamp:new Date().toISOString(),read:true,fromMe:true,hasMedia:false};
           thread.messages.push(sentMsg);
           const row=renderMsgRow(sentMsg,true,false);
           msgList.appendChild(row);
-          // scroll to bottom of body
           body.scrollTop=body.scrollHeight;
-          // update count in header
           const countEl=hdr.querySelector('.msg-count');
           if(countEl) countEl.textContent=`${thread.messages.length} msgs`;
           toast('&#9989; Sent!');
@@ -476,7 +451,6 @@
     return card;
   }
 
-  // ─ API
   async function apiMarkRead(chatId){
     try{await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})});}catch(e){}
   }
@@ -495,7 +469,6 @@
     Object.keys(counts).forEach(k=>{const el=document.getElementById(`badge-${k}`);if(el)el.textContent=counts[k];});
   }
 
-  // ─ socket
   socket.on('status',d=>{
     document.getElementById('status-dot').className='status-dot'+(d.connected?' online':'');
     document.getElementById('status-text').textContent=d.message;
@@ -504,7 +477,8 @@
   socket.on('qr',url=>{document.getElementById('qr-img').src=url;document.getElementById('qr-modal').classList.add('show');});
   socket.on('stats',d=>{
     document.getElementById('unread-count').textContent=d.groupsUnread;
-    document.getElementById('unread-badge').classList.toggle('visible',d.groupsUnread>0);
+    document.getElementById('groups-total').textContent=d.groupsTotal||0;
+    document.getElementById('unread-badge').classList.toggle('visible',(d.groupsTotal||0)>0);
   });
 
   socket.on('history',msgs=>{
@@ -523,15 +497,12 @@
     const isNewThread=!threads.has(msg.chatId);
     addMsg(msg,true);
     const t=threads.get(msg.chatId);
-
     if(isNewThread&&!t.markedRead&&!t.followed){
       counts[msg.category]=(counts[msg.category]||0)+1;counts.all++;updateBadges();
     }
     playNotif();
     if(Notification.permission==='granted')new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
     if(t.markedRead)return;
-
-    // rebuild card in current view
     const show=(currentTab==='all'&&!t.followed)||(currentTab===t.category&&!t.followed)||(currentTab==='followed'&&t.followed);
     const existing=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
     if(existing&&show){
