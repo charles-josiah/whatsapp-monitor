@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# WhatsApp session data (sensitive — never commit)
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  whatsapp-monitor:
+    build: .
+    container_name: whatsapp-monitor
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./wwebjs_auth:/app/.wwebjs_auth
+      - ./wwebjs_cache:/app/.wwebjs_cache
+    environment:
+      - PORT=3000
