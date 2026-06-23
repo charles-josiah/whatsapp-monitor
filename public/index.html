@@ -55,7 +55,7 @@
 
     /* Thread card */
     .thread-card { background: white; border-radius: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.25s ease; overflow: hidden; }
-    .thread-card.followed { box-shadow: 0 0 0 2px var(--orange), var(--shadow); }
+    .thread-card.followed { border-left-color: var(--orange) !important; }
     .thread-card.is-read { opacity: 0.65; border-left-color: #ccc !important; }
     .thread-card.direct { border-left-color: var(--blue); }
     .thread-card.mention { border-left-color: var(--red); }
@@ -63,12 +63,8 @@
     .thread-card.pendente { border-left-color: var(--yellow); }
     @keyframes slideIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
 
-    /* Thread header — always visible, compact */
-    .thread-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 12px; gap: 8px;
-      cursor: pointer; user-select: none;
-    }
+    /* Thread header */
+    .thread-header { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; gap: 8px; cursor: pointer; user-select: none; }
     .thread-header:hover { background: #f7f7f7; }
     .th-left { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; }
     .msg-tag { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; padding: 2px 5px; border-radius: 4px; flex-shrink: 0; }
@@ -76,8 +72,8 @@
     .tag-mention { background: #FCE8E6; color: var(--red); }
     .tag-eximio { background: var(--green-light); color: var(--green-dark); }
     .tag-pendente { background: #FEF3C7; color: #B45309; }
+    .tag-followed { background: #FEE8D6; color: var(--orange); }
     .thread-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    /* preview of last message, shown when collapsed */
     .thread-preview { font-size: 11px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
     .th-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .msg-count { font-size: 11px; color: var(--gray); white-space: nowrap; }
@@ -89,13 +85,13 @@
     .chevron { font-size: 10px; color: var(--gray); transition: transform 0.2s; flex-shrink: 0; }
     .chevron.open { transform: rotate(90deg); }
 
-    /* Expanded body — hidden by default */
+    /* Thread body */
     .thread-body { display: none; border-top: 1px solid #f0f0f0; }
     .thread-body.open { display: block; }
 
-    /* Message rows */
-    .thread-msg { display: flex; padding: 5px 12px; border-bottom: 1px solid #f5f5f5; }
-    .thread-msg:last-child { border-bottom: none; }
+    /* Message rows — received (left) */
+    .thread-msgs { padding: 4px 0; }
+    .thread-msg { display: flex; padding: 4px 12px; }
     .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 9px; flex-shrink: 0; padding-top: 4px; }
     .tree-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
     .tree-dot.new { background: var(--green); }
@@ -106,6 +102,19 @@
     .msg-sender-sm { font-size: 11px; font-weight: 700; color: var(--green-dark); }
     .msg-time-sm { font-size: 10px; color: var(--gray); }
     .msg-body-sm { font-size: 12px; color: var(--text); line-height: 1.4; word-break: break-word; }
+
+    /* Sent messages (right) */
+    .thread-msg.sent { justify-content: flex-end; }
+    .sent-bubble {
+      background: var(--green-light);
+      border-radius: 8px 0px 8px 8px;
+      padding: 5px 10px;
+      max-width: 78%;
+      text-align: right;
+    }
+    .sent-bubble .msg-body-sm { color: #1a3c2e; }
+    .sent-bubble .msg-row-top { justify-content: flex-end; }
+    .sent-bubble .msg-sender-sm { color: var(--green-dark); }
 
     /* Reply area */
     .thread-reply { display: flex; gap: 8px; padding: 7px 12px; border-top: 1px solid #f0f0f0; }
@@ -162,7 +171,6 @@
   const threads = new Map();
   const threadOrder = [];
   const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0, read:0 };
-  // track which chatIds the user has manually expanded
   const expandedChats = new Set();
 
   fetch('/api/version').then(r=>r.json()).then(d=>{
@@ -170,9 +178,9 @@
   }).catch(()=>{});
 
   // ─ helpers
-  function playNotif() {
-    if (!soundEnabled) return;
-    try {
+  function playNotif(){
+    if(!soundEnabled)return;
+    try{
       const ctx=new(window.AudioContext||window.webkitAudioContext)();
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);
@@ -193,7 +201,10 @@
   }
   function fmtTime(iso){return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
   function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  function tagLabel(c){return{direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c;}
+  function tagLabel(c){
+    if(c==='followed') return 'Following';
+    return{direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c;
+  }
 
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.addEventListener('click',()=>{
@@ -203,40 +214,77 @@
   });
 
   // ─ thread model
-  function addMsg(msg, isNew) {
+  function addMsg(msg, isNew){
     let t=threads.get(msg.chatId);
-    if (!t) {
+    if(!t){
       t={chatId:msg.chatId,chatName:msg.chatName,category:msg.category,
          labels:msg.labels,followed:false,markedRead:false,messages:[],newCount:0};
       threads.set(msg.chatId,t);
       threadOrder.unshift(msg.chatId);
-    } else if (isNew) {
+    } else if(isNew){
       const idx=threadOrder.indexOf(msg.chatId);
       if(idx>0){threadOrder.splice(idx,1);threadOrder.unshift(msg.chatId);}
-      if(t.markedRead){
+      // new message on read thread → unread it
+      if(t.markedRead && !msg.fromMe){
         t.markedRead=false;
         counts.read=Math.max(0,counts.read-1);
-        counts[t.category]=(counts[t.category]||0)+1;
-        counts.all++;
+        if(!t.followed){ counts[t.category]=(counts[t.category]||0)+1; counts.all++; }
         updateBadges();
       }
     }
     t.messages.push(msg);
-    if(isNew&&!msg.read) t.newCount=(t.newCount||0)+1;
+    if(isNew&&!msg.read&&!msg.fromMe) t.newCount=(t.newCount||0)+1;
     return t;
   }
 
-  function doMarkReadThread(chatId) {
-    const t=threads.get(chatId); if(!t||t.markedRead) return;
-    t.markedRead=true; t.newCount=0;
+  // Mark read → move to Read tab
+  function doMarkReadThread(chatId){
+    const t=threads.get(chatId);if(!t||t.markedRead)return;
+    t.markedRead=true;t.newCount=0;
     t.messages.forEach(m=>m.read=true);
-    counts[t.category]=Math.max(0,(counts[t.category]||0)-1);
-    counts.all=Math.max(0,counts.all-1);
+    if(!t.followed){
+      counts[t.category]=Math.max(0,(counts[t.category]||0)-1);
+      counts.all=Math.max(0,counts.all-1);
+    } else {
+      counts.followed=Math.max(0,counts.followed-1);
+    }
     counts.read++;
     updateBadges();
-    if(currentTab!=='read'){
-      const card=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(chatId)}"]`);
-      if(card){card.style.transition='opacity 0.3s,transform 0.3s';card.style.opacity='0';card.style.transform='translateX(12px)';setTimeout(()=>{card.remove();checkEmpty();},300);}
+    if(currentTab!=='read') slideOutCard(chatId);
+  }
+
+  // Follow → move to Following tab
+  function doFollowThread(chatId){
+    const t=threads.get(chatId);if(!t||t.followed)return;
+    t.followed=true;
+    if(!t.markedRead){
+      counts[t.category]=Math.max(0,(counts[t.category]||0)-1);
+      counts.all=Math.max(0,counts.all-1);
+      counts.followed++;
+    }
+    updateBadges();
+    if(currentTab!=='followed') slideOutCard(chatId);
+  }
+
+  // Unfollow → back to active
+  function doUnfollowThread(chatId){
+    const t=threads.get(chatId);if(!t||!t.followed)return;
+    t.followed=false;
+    if(!t.markedRead){
+      counts[t.category]=(counts[t.category]||0)+1;
+      counts.all++;
+      counts.followed=Math.max(0,counts.followed-1);
+    }
+    updateBadges();
+    renderFeed();
+  }
+
+  function slideOutCard(chatId){
+    const card=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(chatId)}"]`);
+    if(card){
+      card.style.transition='opacity 0.3s,transform 0.3s';
+      card.style.opacity='0';card.style.transform='translateX(12px)';
+      setTimeout(()=>{card.remove();checkEmpty();},300);
     }
   }
 
@@ -254,8 +302,9 @@
       const t=threads.get(id);if(!t)return false;
       if(currentTab==='read') return t.markedRead;
       if(t.markedRead) return false;
-      if(currentTab==='all') return true;
       if(currentTab==='followed') return t.followed;
+      if(t.followed) return false; // hide followed from other tabs
+      if(currentTab==='all') return true;
       return t.category===currentTab;
     });
   }
@@ -269,24 +318,56 @@
     ids.forEach(id=>{const t=threads.get(id);if(t)feed.appendChild(buildCard(t));});
   }
 
-  function buildCard(thread) {
-    const isExpanded = expandedChats.has(thread.chatId);
-    const newCount = thread.newCount||0;
-    const lastMsg = thread.messages[thread.messages.length-1];
+  function renderMsgRow(msg, isLast, isRead){
+    if(msg.fromMe){
+      const row=document.createElement('div');
+      row.className='thread-msg sent';
+      row.innerHTML=`
+        <div class="sent-bubble">
+          <div class="msg-row-top">
+            <span class="msg-sender-sm">You</span>
+            <span class="msg-time-sm">${fmtTime(msg.timestamp)}</span>
+          </div>
+          <div class="msg-body-sm">${esc(msg.body)}</div>
+        </div>`;
+      return row;
+    }
+    const row=document.createElement('div');
+    row.className='thread-msg';
+    row.innerHTML=`
+      <div class="tree-line">
+        <div class="tree-dot${(!msg.read&&!isRead)?' new':''}"></div>
+        ${!isLast?'<div class="tree-vline"></div>':''}
+      </div>
+      <div class="msg-content">
+        <div class="msg-row-top">
+          <span class="msg-sender-sm">${esc(msg.sender)}</span>
+          <span class="msg-time-sm">${fmtTime(msg.timestamp)}</span>
+        </div>
+        <div class="msg-body-sm">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div>
+      </div>`;
+    return row;
+  }
+
+  function buildCard(thread){
+    const isExpanded=expandedChats.has(thread.chatId);
+    const newCount=thread.newCount||0;
+    const lastMsg=thread.messages[thread.messages.length-1];
+    const displayTag=thread.followed?'followed':thread.category;
 
     const card=document.createElement('div');
     card.className=`thread-card ${thread.category}${thread.followed?' followed':''}${thread.markedRead?' is-read':''}`;
     card.dataset.chatId=thread.chatId;
 
-    // ─ Header (always visible)
+    // Header
     const hdr=document.createElement('div');
     hdr.className='thread-header';
     hdr.innerHTML=`
       <div class="th-left">
-        <span class="msg-tag tag-${thread.category}">${tagLabel(thread.category)}</span>
+        <span class="msg-tag tag-${displayTag}">${tagLabel(displayTag)}</span>
         <div style="min-width:0">
           <div class="thread-name">${thread.category==='direct'?'&#128172; ':'&#128101; '}${esc(thread.chatName)}</div>
-          ${!isExpanded&&lastMsg?`<div class="thread-preview">${esc(lastMsg.sender)}: ${esc(lastMsg.body||'[media]')}</div>`:''}
+          ${!isExpanded&&lastMsg?`<div class="thread-preview">${lastMsg.fromMe?'You: ':esc(lastMsg.sender)+': '}${esc(lastMsg.body||'[media]')}</div>`:''}
         </div>
         ${newCount>0&&!thread.markedRead?`<span class="new-pill">${newCount} new</span>`:''}
       </div>
@@ -301,28 +382,15 @@
         <span class="chevron${isExpanded?' open':''}">&#9654;</span>
       </div>`;
 
-    // ─ Body (collapsed by default)
+    // Body
     const body=document.createElement('div');
     body.className='thread-body'+(isExpanded?' open':'');
 
     const msgList=document.createElement('div');
+    msgList.className='thread-msgs';
     thread.messages.forEach((msg,i)=>{
-      const row=document.createElement('div');
-      row.className='thread-msg';
       const isLast=i===thread.messages.length-1;
-      row.innerHTML=`
-        <div class="tree-line">
-          <div class="tree-dot${(!msg.read&&!thread.markedRead)?' new':''}"></div>
-          ${!isLast?'<div class="tree-vline"></div>':''}
-        </div>
-        <div class="msg-content">
-          <div class="msg-row-top">
-            <span class="msg-sender-sm">${esc(msg.sender)}</span>
-            <span class="msg-time-sm">${fmtTime(msg.timestamp)}</span>
-          </div>
-          <div class="msg-body-sm">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div>
-        </div>`;
-      msgList.appendChild(row);
+      msgList.appendChild(renderMsgRow(msg,isLast,thread.markedRead));
     });
 
     const replyArea=document.createElement('div');
@@ -334,68 +402,82 @@
     card.appendChild(hdr);
     card.appendChild(body);
 
-    // toggle expand/collapse
+    // Collapse toggle
     hdr.addEventListener('click',()=>{
       const opening=!body.classList.contains('open');
       body.classList.toggle('open',opening);
       hdr.querySelector('.chevron').classList.toggle('open',opening);
       if(opening) expandedChats.add(thread.chatId);
       else expandedChats.delete(thread.chatId);
-      // update preview line
       const previewEl=hdr.querySelector('.thread-preview');
       if(opening&&previewEl) previewEl.remove();
       else if(!opening&&lastMsg&&!hdr.querySelector('.thread-preview')){
         const d=document.createElement('div');
         d.className='thread-preview';
-        d.textContent=`${lastMsg.sender}: ${lastMsg.body||'[media]'}`;
+        d.textContent=(lastMsg.fromMe?'You: ':(lastMsg.sender+': '))+(lastMsg.body||'[media]');
         hdr.querySelector('.th-left > div').appendChild(d);
       }
     });
 
-    // mark read
+    // Mark read
     hdr.querySelector('.read-check').addEventListener('change',async e=>{
       if(e.target.checked){
-        await doMarkRead(thread.chatId);
+        await apiMarkRead(thread.chatId);
         doMarkReadThread(thread.chatId);
         if(currentTab==='read') renderFeed();
       } else {
         thread.markedRead=false;
         counts.read=Math.max(0,counts.read-1);
-        counts[thread.category]=(counts[thread.category]||0)+1;
-        counts.all++;
+        if(!thread.followed){ counts[thread.category]=(counts[thread.category]||0)+1; counts.all++; }
+        else counts.followed++;
         updateBadges(); renderFeed();
       }
     });
 
-    // follow
+    // Follow
     hdr.querySelector('.follow-check-input').addEventListener('change',e=>{
-      thread.followed=e.target.checked;
-      card.classList.toggle('followed',thread.followed);
-      counts.followed=[...threads.values()].filter(t=>t.followed).length;
-      const el=document.getElementById('badge-followed');if(el)el.textContent=counts.followed;
-      toast(thread.followed?'&#128992; Following':'Unfollowed');
-      if(currentTab==='followed') renderFeed();
+      if(e.target.checked){
+        doFollowThread(thread.chatId);
+        toast('&#128992; Moved to Following');
+      } else {
+        doUnfollowThread(thread.chatId);
+        toast('Unfollowed — moved back to active');
+      }
     });
 
-    // reply
+    // Reply — adds sent bubble immediately
     const inp=replyArea.querySelector('.reply-input'),btn=replyArea.querySelector('.reply-btn');
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(thread.chatId,inp,btn);}});
-    btn.addEventListener('click',()=>doReply(thread.chatId,inp,btn));
+    async function sendReply(){
+      const text=inp.value.trim();if(!text)return;
+      btn.disabled=true;btn.textContent='...';
+      try{
+        const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId,message:text})});
+        if(r.ok){
+          inp.value='';
+          // Add sent bubble to thread immediately
+          const sentMsg={id:'local-'+Date.now(),sender:'You',body:text,
+                         timestamp:new Date().toISOString(),read:true,fromMe:true,hasMedia:false};
+          thread.messages.push(sentMsg);
+          const row=renderMsgRow(sentMsg,true,false);
+          msgList.appendChild(row);
+          // scroll to bottom of body
+          body.scrollTop=body.scrollHeight;
+          // update count in header
+          const countEl=hdr.querySelector('.msg-count');
+          if(countEl) countEl.textContent=`${thread.messages.length} msgs`;
+          toast('&#9989; Sent!');
+        } else toast('&#10060; Failed');
+      }catch(e){toast('&#10060; '+e.message);}
+      btn.disabled=false;btn.innerHTML='Send &#10148;';
+    }
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendReply();}});
+    btn.addEventListener('click',sendReply);
 
     return card;
   }
 
   // ─ API
-  async function doReply(chatId,inp,btn){
-    const text=inp.value.trim();if(!text)return;
-    btn.disabled=true;btn.textContent='...';
-    try{
-      const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,message:text})});
-      if(r.ok){inp.value='';toast('&#9989; Sent!');}else toast('&#10060; Failed');
-    }catch(e){toast('&#10060; '+e.message);}
-    btn.disabled=false;btn.innerHTML='Send &#10148;';
-  }
-  async function doMarkRead(chatId){
+  async function apiMarkRead(chatId){
     try{await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId})});}catch(e){}
   }
   document.getElementById('clear-btn').addEventListener('click',async()=>{
@@ -424,34 +506,43 @@
     document.getElementById('unread-count').textContent=d.groupsUnread;
     document.getElementById('unread-badge').classList.toggle('visible',d.groupsUnread>0);
   });
+
   socket.on('history',msgs=>{
     [...msgs].reverse().forEach(m=>addMsg(m,false));
     Object.keys(counts).forEach(k=>counts[k]=0);
     threads.forEach(t=>{
       if(t.markedRead){counts.read++;return;}
+      if(t.followed){counts.followed++;return;}
       counts[t.category]=(counts[t.category]||0)+1;counts.all++;
-      if(t.followed)counts.followed++;
     });
     updateBadges();renderFeed();
   });
+
   socket.on('message',msg=>{
     msg.read=false;msg.followed=false;
-    const isNew=!threads.has(msg.chatId);
+    const isNewThread=!threads.has(msg.chatId);
     addMsg(msg,true);
     const t=threads.get(msg.chatId);
-    if(isNew&&!t.markedRead){counts[msg.category]=(counts[msg.category]||0)+1;counts.all++;updateBadges();}
+
+    if(isNewThread&&!t.markedRead&&!t.followed){
+      counts[msg.category]=(counts[msg.category]||0)+1;counts.all++;updateBadges();
+    }
     playNotif();
     if(Notification.permission==='granted')new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
     if(t.markedRead)return;
+
+    // rebuild card in current view
+    const show=(currentTab==='all'&&!t.followed)||(currentTab===t.category&&!t.followed)||(currentTab==='followed'&&t.followed);
     const existing=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
-    if(existing&&(currentTab==='all'||currentTab===msg.category)){
+    if(existing&&show){
       existing.remove();
       document.getElementById('feed').insertBefore(buildCard(t),document.getElementById('feed').firstChild);
-    } else if(!existing&&(currentTab==='all'||currentTab===msg.category)){
+    } else if(!existing&&show){
       document.getElementById('empty-state').style.display='none';
       document.getElementById('feed').insertBefore(buildCard(t),document.getElementById('feed').firstChild);
     }
   });
+
   if(Notification.permission==='default')Notification.requestPermission();
 </script>
 </body>
