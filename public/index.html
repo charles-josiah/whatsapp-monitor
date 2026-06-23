@@ -14,11 +14,13 @@
       --orange: #E8710A; --shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+
+    /* HEADER */
     header { background: var(--green-dark); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.3); flex-shrink: 0; gap: 10px; }
     .header-left { display: flex; align-items: center; gap: 10px; }
     header h1 { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     header h1 svg { width: 22px; height: 22px; fill: white; flex-shrink: 0; }
-    #app-version { font-size: 10px; font-weight: 400; opacity: 0.65; margin-left: 2px; letter-spacing: 0.3px; }
+    #app-version { font-size: 10px; font-weight: 400; opacity: 0.65; margin-left: 2px; }
     .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     #status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 20px; }
     #status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; transition: background 0.3s; flex-shrink: 0; }
@@ -30,13 +32,16 @@
     #clear-btn:hover { background: rgba(255,255,255,0.3); }
     #clear-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #sound-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 5px 9px; border-radius: 8px; cursor: pointer; font-size: 15px; }
-    #sound-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* QR MODAL */
     #qr-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
     #qr-modal.show { display: flex; }
-    #qr-box { background: white; border-radius: 16px; padding: 28px; text-align: center; max-width: 340px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-    #qr-box h2 { color: var(--green-dark); margin-bottom: 8px; font-size: 18px; }
+    #qr-box { background: white; border-radius: 16px; padding: 28px; text-align: center; max-width: 340px; width: 90%; }
+    #qr-box h2 { color: var(--green-dark); margin-bottom: 8px; }
     #qr-box p { color: var(--gray); font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
     #qr-img { width: 200px; height: 200px; border: 2px solid #eee; border-radius: 8px; }
+
+    /* TABS */
     nav { background: white; display: flex; border-bottom: 1px solid #ddd; flex-shrink: 0; overflow-x: auto; }
     .tab { padding: 11px 16px; font-size: 12px; font-weight: 600; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
     .tab:hover { color: var(--green-dark); }
@@ -45,47 +50,75 @@
     .tab-badge.red { background: var(--red); }
     .tab-badge.blue { background: var(--blue); }
     .tab-badge.yellow { background: var(--yellow); color: #111; }
-    main { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* FEED */
+    main { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
     .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); gap: 10px; padding: 40px; text-align: center; }
     .empty svg { width: 44px; height: 44px; opacity: 0.3; }
-    .msg-card { background: white; border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.3s ease; }
-    .msg-card.followed { box-shadow: 0 0 0 2px var(--orange), var(--shadow); }
-    .msg-card.read-done { opacity: 0.55; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-    .msg-card.direct { border-left-color: var(--blue); }
-    .msg-card.mention { border-left-color: var(--red); }
-    .msg-card.eximio { border-left-color: var(--green); }
-    .msg-card.pendente { border-left-color: var(--yellow); }
-    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
-    .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; }
-    .msg-sender { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .msg-time { font-size: 11px; color: var(--gray); flex-shrink: 0; }
+
+    /* THREAD CARD */
+    .thread-card { background: white; border-radius: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--green); animation: slideIn 0.3s ease; overflow: hidden; }
+    .thread-card.followed { box-shadow: 0 0 0 2px var(--orange), var(--shadow); }
+    .thread-card.all-read { opacity: 0.55; }
+    .thread-card.direct { border-left-color: var(--blue); }
+    .thread-card.mention { border-left-color: var(--red); }
+    .thread-card.eximio { border-left-color: var(--green); }
+    .thread-card.pendente { border-left-color: var(--yellow); }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+    /* THREAD HEADER */
+    .thread-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; gap: 8px; border-bottom: 1px solid #f0f0f0; cursor: pointer; user-select: none; }
+    .thread-header:hover { background: #fafafa; }
+    .thread-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
     .msg-tag { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
     .tag-direct { background: #E8F0FE; color: var(--blue); }
     .tag-mention { background: #FCE8E6; color: var(--red); }
     .tag-eximio { background: var(--green-light); color: var(--green-dark); }
     .tag-pendente { background: #FEF3C7; color: #B45309; }
-    .msg-group { font-size: 11px; color: var(--gray); margin-bottom: 4px; }
-    .msg-body { font-size: 13px; line-height: 1.5; color: var(--text); word-break: break-word; margin-bottom: 10px; }
-    .card-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .thread-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .thread-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .msg-count { font-size: 11px; color: var(--gray); }
+    .new-pill { background: var(--red); color: white; border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 700; }
     .action-check { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--gray); cursor: pointer; user-select: none; }
-    .action-check input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--green-dark); }
+    .action-check input { width: 13px; height: 13px; cursor: pointer; accent-color: var(--green-dark); }
     .action-check.follow-check { color: var(--orange); font-weight: 600; }
     .action-check.follow-check input { accent-color: var(--orange); }
-    .reply-area { display: flex; gap: 6px; flex: 1; min-width: 200px; }
-    .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 5px 12px; font-size: 12px; outline: none; transition: border 0.2s; }
+    .collapse-icon { font-size: 11px; color: var(--gray); margin-left: 2px; transition: transform 0.2s; }
+    .collapse-icon.open { transform: rotate(90deg); }
+
+    /* THREAD MESSAGES */
+    .thread-messages { border-bottom: 1px solid #f0f0f0; }
+    .thread-msg { display: flex; gap: 0; padding: 6px 14px; border-bottom: 1px solid #f5f5f5; position: relative; }
+    .thread-msg:last-child { border-bottom: none; }
+    .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 10px; flex-shrink: 0; padding-top: 3px; }
+    .tree-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; margin-top: 3px; }
+    .tree-dot.new { background: var(--green); }
+    .tree-vline { width: 1px; background: #e0e0e0; flex: 1; margin-top: 3px; }
+    .thread-msg:last-child .tree-vline { display: none; }
+    .msg-content { flex: 1; min-width: 0; }
+    .msg-row-header { display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px; }
+    .msg-sender-sm { font-size: 11px; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+    .msg-time-sm { font-size: 10px; color: var(--gray); }
+    .msg-body-sm { font-size: 13px; color: var(--text); line-height: 1.45; word-break: break-word; }
+    .msg-body-sm.media { color: var(--gray); font-style: italic; }
+
+    /* THREAD REPLY */
+    .thread-reply { display: flex; gap: 8px; padding: 8px 14px; align-items: center; }
+    .reply-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 6px 14px; font-size: 12px; outline: none; transition: border 0.2s; }
     .reply-input:focus { border-color: var(--green-dark); }
-    .reply-btn { background: var(--green-dark); color: white; border: none; border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+    .reply-btn { background: var(--green-dark); color: white; border: none; border-radius: 20px; padding: 6px 16px; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
     .reply-btn:hover { background: var(--green); }
     .reply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* TOAST */
     #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
     #toast.show { opacity: 1; }
-    .new-dot { display: inline-block; width: 7px; height: 7px; background: var(--red); border-radius: 50%; margin-left: 4px; vertical-align: middle; }
   </style>
 </head>
 <body>
 <div id="qr-modal"><div id="qr-box"><h2>Connect WhatsApp</h2><p>Open WhatsApp on your phone &rarr; Menu &rarr; Linked devices &rarr; Link a device</p><img id="qr-img" src="" alt="QR Code" /></div></div>
 <div id="toast"></div>
+
 <header>
   <div class="header-left">
     <h1>
@@ -101,6 +134,7 @@
     <div id="status-badge"><div id="status-dot"></div><span id="status-text">Connecting...</span></div>
   </div>
 </header>
+
 <nav>
   <div class="tab active" data-tab="all">All <span class="tab-badge" id="badge-all">0</span></div>
   <div class="tab" data-tab="direct">&#128172; Direct <span class="tab-badge blue" id="badge-direct">0</span></div>
@@ -109,6 +143,7 @@
   <div class="tab" data-tab="pendente">&#9203; Pending <span class="tab-badge yellow" id="badge-pendente">0</span></div>
   <div class="tab" data-tab="followed">&#128992; Following <span class="tab-badge" id="badge-followed" style="background:var(--orange)">0</span></div>
 </nav>
+
 <main id="feed">
   <div class="empty" id="empty-state">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -116,28 +151,36 @@
     <p style="font-size:11px;margin-top:4px;">Direct messages, @mentions and Eximio/Pending labels will appear here.</p>
   </div>
 </main>
+
 <script>
   const socket = io();
   let currentTab = 'all', soundEnabled = true;
-  const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0 };
-  const allMessages = [];
 
-  // Load version
+  // threads: Map<chatId, { chatId, chatName, category, labels, followed, allRead, messages: [] }>
+  const threads = new Map();
+  // threadOrder: chatIds ordered by most recent message (front = newest)
+  const threadOrder = [];
+
+  // counts per category (thread-based)
+  const counts = { all:0, direct:0, mention:0, eximio:0, pendente:0, followed:0 };
+
+  // Load build version
   fetch('/api/version').then(r=>r.json()).then(d=>{
-    document.getElementById('app-version').textContent = 'v' + d.version;
+    document.getElementById('app-version').textContent = 'v'+d.version;
   }).catch(()=>{});
 
+  // ─── Helpers ────────────────────────────────────────────────────────────────
   function playNotif() {
     if (!soundEnabled) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
       const osc = ctx.createOscillator(), gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
       osc.frequency.value = 880; osc.type = 'sine';
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
-    } catch(e) {}
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.4);
+      osc.start(); osc.stop(ctx.currentTime+0.4);
+    } catch(e){}
   }
 
   document.getElementById('sound-btn').addEventListener('click', () => {
@@ -148,72 +191,177 @@
   function toast(msg, d=2500) {
     const el = document.getElementById('toast');
     el.textContent = msg; el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), d);
+    setTimeout(()=>el.classList.remove('show'), d);
   }
 
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active'); currentTab = tab.dataset.tab; renderFeed();
+  function formatTime(iso) { return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function tagLabel(c) { return {direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
+
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active'); currentTab=tab.dataset.tab; renderFeed();
     });
   });
 
-  function formatTime(iso) { return new Date(iso).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }); }
-  function formatDate(iso) {
-    const d = new Date(iso), t = new Date();
-    if (d.toDateString() === t.toDateString()) return 'Today';
-    const y = new Date(t); y.setDate(t.getDate()-1);
-    if (d.toDateString() === y.toDateString()) return 'Yesterday';
-    return d.toLocaleDateString('en-US');
+  // ─── Thread model ────────────────────────────────────────────────────────────
+  function addMessageToThread(msg, isNew) {
+    let thread = threads.get(msg.chatId);
+    if (!thread) {
+      thread = {
+        chatId: msg.chatId,
+        chatName: msg.chatName,
+        category: msg.category,
+        labels: msg.labels,
+        followed: msg.followed || false,
+        messages: [],
+        newCount: 0
+      };
+      threads.set(msg.chatId, thread);
+      threadOrder.unshift(msg.chatId);
+      // count new thread
+      if (!msg.read) {
+        counts[msg.category] = (counts[msg.category]||0)+1;
+        counts.all++;
+      }
+    } else {
+      // Move to front if new message
+      if (isNew) {
+        const idx = threadOrder.indexOf(msg.chatId);
+        if (idx > 0) { threadOrder.splice(idx,1); threadOrder.unshift(msg.chatId); }
+      }
+    }
+    thread.messages.push(msg);
+    if (isNew && !msg.read) thread.newCount = (thread.newCount||0)+1;
+    return thread;
   }
-  function tagLabel(c) { return {direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
-  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  function createCard(msg, isNew=false) {
+  // ─── Render ──────────────────────────────────────────────────────────────────
+  function getFilteredThreadIds() {
+    return threadOrder.filter(chatId => {
+      const t = threads.get(chatId);
+      if (!t) return false;
+      if (currentTab === 'all') return true;
+      if (currentTab === 'followed') return t.followed;
+      return t.category === currentTab;
+    });
+  }
+
+  function renderFeed() {
+    const feed = document.getElementById('feed');
+    const empty = document.getElementById('empty-state');
+    Array.from(feed.children).forEach(c=>{ if(c!==empty) c.remove(); });
+    const ids = getFilteredThreadIds();
+    if (!ids.length) { empty.style.display='flex'; return; }
+    empty.style.display='none';
+    ids.forEach(chatId => {
+      const t = threads.get(chatId);
+      if (t) feed.appendChild(buildThreadCard(t));
+    });
+  }
+
+  function buildThreadCard(thread) {
     const card = document.createElement('div');
-    card.className = `msg-card ${msg.category}${msg.followed?' followed':''}${msg.read?' read-done':''}`;
-    card.dataset.id = msg.id;
-    card.innerHTML = `
-      <div class="card-header">
-        <div class="card-meta">
-          <span class="msg-tag tag-${msg.category}">${tagLabel(msg.category)}</span>
-          <span class="msg-sender">${esc(msg.sender)}${isNew?'<span class="new-dot"></span>':''}</span>
-        </div>
-        <span class="msg-time">${formatDate(msg.timestamp)} ${formatTime(msg.timestamp)}</span>
+    card.className = `thread-card ${thread.category}${thread.followed?' followed':''}${thread.allRead?' all-read':''}`;
+    card.dataset.chatId = thread.chatId;
+
+    const allRead = thread.messages.every(m=>m.read);
+    const newCount = thread.newCount || 0;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'thread-header';
+    header.innerHTML = `
+      <div class="thread-meta">
+        <span class="msg-tag tag-${thread.category}">${tagLabel(thread.category)}</span>
+        <span class="thread-name">${thread.category==='direct'?'&#128172; ':'&#128101; '}${esc(thread.chatName)}</span>
+        ${newCount>0?`<span class="new-pill">${newCount} new</span>`:''}
       </div>
-      <div class="msg-group">${msg.category!=='direct'?'&#128101; '+esc(msg.chatName):'&#128172; Direct message'}</div>
-      <div class="msg-body">${msg.hasMedia?'&#128206; ':''}${esc(msg.body||'[media]')}</div>
-      <div class="card-actions">
-        <div class="reply-area">
-          <input class="reply-input" type="text" placeholder="Reply..." />
-          <button class="reply-btn">Send &#10148;</button>
-        </div>
-        <label class="action-check"><input type="checkbox" class="read-check" ${msg.read?'checked':''} /> Mark read</label>
-        <label class="action-check follow-check"><input type="checkbox" class="follow-check-input" ${msg.followed?'checked':''} /> Follow</label>
+      <div class="thread-controls">
+        <span class="msg-count">${thread.messages.length} msg${thread.messages.length!==1?'s':''}</span>
+        <label class="action-check" onclick="event.stopPropagation()">
+          <input type="checkbox" class="read-check" ${allRead?'checked':''} /> Mark read
+        </label>
+        <label class="action-check follow-check" onclick="event.stopPropagation()">
+          <input type="checkbox" class="follow-check-input" ${thread.followed?'checked':''} /> Follow
+        </label>
+        <span class="collapse-icon open">&#9654;</span>
       </div>`;
 
-    const replyBtn = card.querySelector('.reply-btn');
-    const replyInput = card.querySelector('.reply-input');
-    replyInput.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(msg.chatId,replyInput,replyBtn);} });
-    replyBtn.addEventListener('click', () => doReply(msg.chatId, replyInput, replyBtn));
-
-    card.querySelector('.read-check').addEventListener('change', async e => {
-      if(e.target.checked){ await doMarkRead(msg.chatId); card.classList.add('read-done'); msg.read=true; }
+    // Messages list
+    const msgList = document.createElement('div');
+    msgList.className = 'thread-messages';
+    thread.messages.forEach((msg, i) => {
+      const row = document.createElement('div');
+      row.className = 'thread-msg';
+      const isLast = i === thread.messages.length-1;
+      row.innerHTML = `
+        <div class="tree-line">
+          <div class="tree-dot${!msg.read?' new':''}"></div>
+          ${!isLast?'<div class="tree-vline"></div>':''}
+        </div>
+        <div class="msg-content">
+          <div class="msg-row-header">
+            <span class="msg-sender-sm">${esc(msg.sender)}</span>
+            <span class="msg-time-sm">${formatTime(msg.timestamp)}</span>
+          </div>
+          <div class="msg-body-sm${msg.hasMedia&&!msg.body?' media':''}">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div>
+        </div>`;
+      msgList.appendChild(row);
     });
 
-    card.querySelector('.follow-check-input').addEventListener('change', e => {
-      msg.followed = e.target.checked;
-      card.classList.toggle('followed', msg.followed);
-      counts.followed = allMessages.filter(m=>m.followed).length;
-      const el = document.getElementById('badge-followed'); if(el) el.textContent = counts.followed;
-      toast(msg.followed ? '&#128992; Following this conversation' : 'Unfollowed');
-      if(currentTab==='followed') renderFeed();
+    // Reply area
+    const replyArea = document.createElement('div');
+    replyArea.className = 'thread-reply';
+    replyArea.innerHTML = `<input class="reply-input" type="text" placeholder="Reply to ${esc(thread.chatName)}..." /><button class="reply-btn">Send &#10148;</button>`;
+
+    card.appendChild(header);
+    card.appendChild(msgList);
+    card.appendChild(replyArea);
+
+    // Collapse toggle
+    const collapseIcon = header.querySelector('.collapse-icon');
+    header.addEventListener('click', () => {
+      const open = msgList.style.display !== 'none';
+      msgList.style.display = open ? 'none' : '';
+      replyArea.style.display = open ? 'none' : '';
+      collapseIcon.classList.toggle('open', !open);
     });
 
-    if(isNew) setTimeout(()=>{ const d=card.querySelector('.new-dot'); if(d) d.remove(); }, 3000);
+    // Mark read
+    header.querySelector('.read-check').addEventListener('change', async e => {
+      if (e.target.checked) {
+        await doMarkRead(thread.chatId);
+        thread.messages.forEach(m=>m.read=true);
+        thread.newCount=0;
+        card.classList.add('all-read');
+        msgList.querySelectorAll('.tree-dot').forEach(d=>d.classList.remove('new'));
+        const pill = header.querySelector('.new-pill');
+        if (pill) pill.remove();
+      }
+    });
+
+    // Follow
+    header.querySelector('.follow-check-input').addEventListener('change', e => {
+      thread.followed = e.target.checked;
+      card.classList.toggle('followed', thread.followed);
+      counts.followed = [...threads.values()].filter(t=>t.followed).length;
+      const el = document.getElementById('badge-followed'); if(el) el.textContent=counts.followed;
+      toast(thread.followed ? '&#128992; Following this conversation' : 'Unfollowed');
+      if (currentTab==='followed') renderFeed();
+    });
+
+    // Send reply
+    const replyInput = replyArea.querySelector('.reply-input');
+    const replyBtn = replyArea.querySelector('.reply-btn');
+    replyInput.addEventListener('keydown', e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply(thread.chatId,replyInput,replyBtn);} });
+    replyBtn.addEventListener('click',()=>doReply(thread.chatId,replyInput,replyBtn));
+
     return card;
   }
 
+  // ─── API calls ───────────────────────────────────────────────────────────────
   async function doReply(chatId, input, btn) {
     const text = input.value.trim(); if(!text) return;
     btn.disabled=true; btn.textContent='...';
@@ -243,55 +391,67 @@
     btn.disabled=false; btn.innerHTML='&#129529; Clear All';
   });
 
-  function getFiltered() {
-    if(currentTab==='all') return allMessages;
-    if(currentTab==='followed') return allMessages.filter(m=>m.followed);
-    return allMessages.filter(m=>m.category===currentTab);
+  function updateBadges() {
+    Object.keys(counts).forEach(k=>{ const el=document.getElementById(`badge-${k}`); if(el) el.textContent=counts[k]; });
   }
 
-  function renderFeed() {
-    const feed=document.getElementById('feed'), empty=document.getElementById('empty-state');
-    const msgs=getFiltered();
-    Array.from(feed.children).forEach(c=>{if(c!==empty)c.remove();});
-    if(!msgs.length){empty.style.display='flex';return;}
-    empty.style.display='none';
-    msgs.forEach(msg=>feed.appendChild(createCard(msg,false)));
-  }
-
-  function updateBadge(cat) {
-    counts[cat]=(counts[cat]||0)+1; counts.all++;
-    const el=document.getElementById(`badge-${cat}`); if(el) el.textContent=counts[cat];
-    document.getElementById('badge-all').textContent=counts.all;
-  }
-
-  socket.on('status', data => {
+  // ─── Socket events ───────────────────────────────────────────────────────────
+  socket.on('status', data=>{
     document.getElementById('status-dot').className='status-dot'+(data.connected?' online':'');
     document.getElementById('status-text').textContent=data.message;
     if(data.connected) document.getElementById('qr-modal').classList.remove('show');
   });
-  socket.on('qr', url => { document.getElementById('qr-img').src=url; document.getElementById('qr-modal').classList.add('show'); });
-  socket.on('stats', data => {
-    const badge=document.getElementById('unread-badge'), count=document.getElementById('unread-count');
-    count.textContent=data.groupsUnread;
+  socket.on('qr', url=>{ document.getElementById('qr-img').src=url; document.getElementById('qr-modal').classList.add('show'); });
+  socket.on('stats', data=>{
+    const badge=document.getElementById('unread-badge');
+    document.getElementById('unread-count').textContent=data.groupsUnread;
     badge.classList.toggle('visible', data.groupsUnread>0);
   });
-  socket.on('history', msgs => {
-    msgs.forEach(m=>allMessages.push(m));
+
+  socket.on('history', msgs=>{
+    // msgs come newest-first from server; process oldest-first for proper order
+    [...msgs].reverse().forEach(m=>addMessageToThread(m, false));
+    // recompute counts
     Object.keys(counts).forEach(k=>counts[k]=0);
-    allMessages.forEach(m=>{ counts[m.category]=(counts[m.category]||0)+1; counts.all++; if(m.followed)counts.followed++; });
-    Object.keys(counts).forEach(k=>{ const el=document.getElementById(`badge-${k}`); if(el) el.textContent=counts[k]; });
+    threads.forEach(t=>{
+      if(!t.messages.every(m=>m.read)){
+        counts[t.category]=(counts[t.category]||0)+1;
+        counts.all++;
+      }
+      if(t.followed) counts.followed++;
+    });
+    updateBadges();
     renderFeed();
   });
-  socket.on('message', msg => {
+
+  socket.on('message', msg=>{
     msg.read=false; msg.followed=false;
-    allMessages.unshift(msg); updateBadge(msg.category); playNotif();
+    const isNewThread = !threads.has(msg.chatId);
+    addMessageToThread(msg, true);
+    if (isNewThread) {
+      counts[msg.category]=(counts[msg.category]||0)+1;
+      counts.all++;
+      updateBadges();
+    }
+    playNotif();
     if(Notification.permission==='granted') new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
-    if(currentTab==='all'||currentTab===msg.category){
-      const feed=document.getElementById('feed');
+
+    // Update existing card or re-render
+    const existingCard = document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
+    if (existingCard && (currentTab==='all'||currentTab===msg.category)) {
+      // Move card to top and rebuild
+      existingCard.remove();
+      const feed = document.getElementById('feed');
+      const thread = threads.get(msg.chatId);
+      feed.insertBefore(buildThreadCard(thread), feed.firstChild);
+    } else if (!existingCard && (currentTab==='all'||currentTab===msg.category)) {
+      const feed = document.getElementById('feed');
       document.getElementById('empty-state').style.display='none';
-      feed.insertBefore(createCard(msg,true),feed.firstChild);
+      const thread = threads.get(msg.chatId);
+      feed.insertBefore(buildThreadCard(thread), feed.firstChild);
     }
   });
+
   if(Notification.permission==='default') Notification.requestPermission();
 </script>
 </body>
