@@ -79,7 +79,16 @@
     .chevron.open { transform: rotate(90deg); }
     .thread-body { display: none; border-top: 1px solid #f0f0f0; }
     .thread-body.open { display: block; }
-    .thread-msgs { padding: 4px 0; }
+    /* Fixed-height scrollable message list — newest on top */
+    .thread-msgs {
+      padding: 4px 0;
+      max-height: 175px;
+      overflow-y: auto;
+    }
+    .thread-msgs::-webkit-scrollbar { width: 4px; }
+    .thread-msgs::-webkit-scrollbar-track { background: transparent; }
+    .thread-msgs::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 2px; }
+    .thread-msgs::-webkit-scrollbar-thumb:hover { background: #aaa; }
     .thread-msg { display: flex; padding: 4px 12px; }
     .tree-line { display: flex; flex-direction: column; align-items: center; margin-right: 9px; flex-shrink: 0; padding-top: 4px; }
     .tree-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
@@ -153,14 +162,12 @@
   const threads=new Map(), threadOrder=[];
   const counts={all:0,direct:0,mention:0,eximio:0,pendente:0,followed:0,read:0};
   const expandedChats=new Set();
-  const followedChatIds=new Set(); // persisted on server
-  let allLabels=[]; // all WhatsApp labels
+  const followedChatIds=new Set();
+  let allLabels=[];
 
-  // Load version & labels
   fetch('/api/version').then(r=>r.json()).then(d=>{ document.getElementById('app-version').textContent='v'+d.version; }).catch(()=>{});
   fetch('/api/labels').then(r=>r.json()).then(d=>{ if(Array.isArray(d)) allLabels=d; }).catch(()=>{});
 
-  // ─ helpers
   function playNotif(){ if(!soundEnabled)return; try{ const ctx=new(window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.frequency.value=880;o.type='sine'; g.gain.setValueAtTime(0.3,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4); o.start();o.stop(ctx.currentTime+0.4); }catch(e){} }
   document.getElementById('sound-btn').addEventListener('click',()=>{ soundEnabled=!soundEnabled; document.getElementById('sound-btn').innerHTML=soundEnabled?'&#128276;':'&#128277;'; });
   function toast(msg,d=2500){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),d); }
@@ -170,7 +177,6 @@
 
   document.querySelectorAll('.tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); currentTab=tab.dataset.tab; renderFeed(); }); });
 
-  // ─ thread model
   function addMsg(msg,isNew){
     let t=threads.get(msg.chatId);
     if(!t){
@@ -182,7 +188,6 @@
       const idx=threadOrder.indexOf(msg.chatId);
       if(idx>0){threadOrder.splice(idx,1);threadOrder.unshift(msg.chatId);}
       if(t.markedRead&&!msg.fromMe){ t.markedRead=false; counts.read=Math.max(0,counts.read-1); if(!t.followed){counts[t.category]=(counts[t.category]||0)+1;counts.all++;} updateBadges(); }
-      // update label objects from new message
       if(msg.labelObjects&&msg.labelObjects.length>0){ t.labelObjects=msg.labelObjects; t.labels=msg.labels||[]; }
     }
     t.messages.push(msg);
@@ -205,7 +210,6 @@
 
   function renderFeed(){ const feed=document.getElementById('feed'),empty=document.getElementById('empty-state'); [...feed.children].forEach(c=>{if(c!==empty)c.remove();}); const ids=getFiltered(); if(!ids.length){empty.style.display='flex';return;} empty.style.display='none'; ids.forEach(id=>{const t=threads.get(id);if(t)feed.appendChild(buildCard(t));}); }
 
-  // ─ label section
   function renderLabelSection(container, thread){
     container.innerHTML='';
     (thread.labelObjects||[]).forEach(label=>{
@@ -243,9 +247,13 @@
     }catch(e){ toast('&#10060; '+e.message); }
   }
 
-  // ─ card builder
+  // Render a single message row
   function renderMsgRow(msg,isLast,isRead){
-    if(msg.fromMe){ const row=document.createElement('div'); row.className='thread-msg sent'; row.innerHTML=`<div class="sent-bubble"><div class="msg-row-top"><span class="msg-sender-sm">You</span><span class="msg-time-sm">${fmtTime(msg.timestamp)}</span></div><div class="msg-body-sm">${esc(msg.body)}</div></div>`; return row; }
+    if(msg.fromMe){
+      const row=document.createElement('div'); row.className='thread-msg sent';
+      row.innerHTML=`<div class="sent-bubble"><div class="msg-row-top"><span class="msg-sender-sm">You</span><span class="msg-time-sm">${fmtTime(msg.timestamp)}</span></div><div class="msg-body-sm">${esc(msg.body)}</div></div>`;
+      return row;
+    }
     const row=document.createElement('div'); row.className='thread-msg';
     row.innerHTML=`<div class="tree-line"><div class="tree-dot${(!msg.read&&!isRead)?' new':''}"></div>${!isLast?'<div class="tree-vline"></div>':''}</div><div class="msg-content"><div class="msg-row-top"><span class="msg-sender-sm">${esc(msg.sender)}</span><span class="msg-time-sm">${fmtTime(msg.timestamp)}</span></div><div class="msg-body-sm">${msg.hasMedia&&!msg.body?'&#128206; [media]':esc(msg.body)}</div></div>`;
     return row;
@@ -279,9 +287,11 @@
 
     const body=document.createElement('div'); body.className='thread-body'+(isExpanded?' open':'');
     const msgList=document.createElement('div'); msgList.className='thread-msgs';
-    thread.messages.forEach((msg,i)=>msgList.appendChild(renderMsgRow(msg,i===thread.messages.length-1,thread.markedRead)));
 
-    // Label section
+    // Render newest first — reverse array so newest appears at top
+    const reversed=[...thread.messages].reverse();
+    reversed.forEach((msg,i)=>msgList.appendChild(renderMsgRow(msg, i===reversed.length-1, thread.markedRead)));
+
     const labelSection=document.createElement('div'); labelSection.className='label-section';
     if(isExpanded) renderLabelSection(labelSection,thread);
 
@@ -291,7 +301,6 @@
     body.appendChild(msgList); body.appendChild(labelSection); body.appendChild(replyArea);
     card.appendChild(hdr); card.appendChild(body);
 
-    // Toggle expand
     hdr.addEventListener('click',()=>{
       const opening=!body.classList.contains('open');
       body.classList.toggle('open',opening);
@@ -307,27 +316,32 @@
       }
     });
 
-    // Mark read
     hdr.querySelector('.read-check').addEventListener('change',async e=>{
       if(e.target.checked){ await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId})}); doMarkReadThread(thread.chatId); if(currentTab==='read') renderFeed(); }
       else{ thread.markedRead=false; counts.read=Math.max(0,counts.read-1); if(!thread.followed){counts[thread.category]=(counts[thread.category]||0)+1;counts.all++;}else counts.followed++; updateBadges(); renderFeed(); }
     });
 
-    // Follow
     hdr.querySelector('.follow-check-input').addEventListener('change',e=>{
       if(e.target.checked){ doFollowThread(thread.chatId); toast('&#128992; Moved to Following — saved'); }
       else{ doUnfollowThread(thread.chatId); toast('Unfollowed — moved back to active'); }
     });
 
-    // Reply
     const inp=replyArea.querySelector('.reply-input'),btn=replyArea.querySelector('.reply-btn');
     async function sendReply(){
       const text=inp.value.trim(); if(!text)return;
       btn.disabled=true; btn.textContent='...';
       try{
         const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId,message:text})});
-        if(r.ok){ inp.value=''; const sentMsg={id:'local-'+Date.now(),sender:'You',body:text,timestamp:new Date().toISOString(),read:true,fromMe:true,hasMedia:false}; thread.messages.push(sentMsg); msgList.appendChild(renderMsgRow(sentMsg,true,false)); body.scrollTop=body.scrollHeight; const countEl=hdr.querySelector('.msg-count'); if(countEl)countEl.textContent=`${thread.messages.length} msgs`; toast('&#9989; Sent!'); }
-        else toast('&#10060; Failed');
+        if(r.ok){
+          inp.value='';
+          const sentMsg={id:'local-'+Date.now(),sender:'You',body:text,timestamp:new Date().toISOString(),read:true,fromMe:true,hasMedia:false};
+          thread.messages.push(sentMsg);
+          // Insert at top (newest first)
+          msgList.insertBefore(renderMsgRow(sentMsg,false,false), msgList.firstChild);
+          const countEl=hdr.querySelector('.msg-count');
+          if(countEl)countEl.textContent=`${thread.messages.length} msgs`;
+          toast('&#9989; Sent!');
+        } else toast('&#10060; Failed');
       }catch(e){ toast('&#10060; '+e.message); }
       btn.disabled=false; btn.innerHTML='Send &#10148;';
     }
@@ -336,7 +350,6 @@
     return card;
   }
 
-  // ─ API helpers
   document.getElementById('clear-btn').addEventListener('click',async()=>{
     const btn=document.getElementById('clear-btn'); btn.disabled=true; btn.innerHTML='&#9203; Clearing...';
     try{ const r=await fetch('/api/clear-all',{method:'POST'}); const d=await r.json(); if(r.ok)toast(`&#9989; Cleared ${d.cleared}, kept ${d.skipped}`);else toast('&#10060; '+d.error); }catch(e){toast('&#10060; '+e.message);}
@@ -345,14 +358,12 @@
 
   function updateBadges(){ Object.keys(counts).forEach(k=>{const el=document.getElementById(`badge-${k}`);if(el)el.textContent=counts[k];}); }
 
-  // ─ socket events
   socket.on('status',d=>{ document.getElementById('status-dot').className='status-dot'+(d.connected?' online':''); document.getElementById('status-text').textContent=d.message; if(d.connected)document.getElementById('qr-modal').classList.remove('show'); });
   socket.on('qr',url=>{document.getElementById('qr-img').src=url;document.getElementById('qr-modal').classList.add('show');});
   socket.on('stats',d=>{ document.getElementById('unread-count').textContent=d.groupsUnread; document.getElementById('groups-total').textContent=d.groupsTotal||0; document.getElementById('unread-badge').classList.toggle('visible',(d.groupsTotal||0)>0); });
 
   socket.on('followedChats',chatIds=>{
     chatIds.forEach(id=>followedChatIds.add(id));
-    // apply to already-loaded threads
     threads.forEach((t,chatId)=>{ if(followedChatIds.has(chatId)) t.followed=true; });
   });
 
