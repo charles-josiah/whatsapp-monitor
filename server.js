@@ -15,31 +15,50 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 
-// Build version (generated at Docker build time)
+// Build version
 const BUILD_VERSION = fs.existsSync('./.build-version')
   ? fs.readFileSync('./.build-version', 'utf8').trim()
   : '0.1.dev';
-
 console.log(`Build version: ${BUILD_VERSION}`);
 
-// Monitored labels (case-insensitive) — WhatsApp Business labels
+// Monitored labels
 const MONITORED_LABELS = ['eximio', 'pendente'];
 
-// Message history (max 200)
+// Message history
 const messageHistory = [];
 const MAX_HISTORY = 200;
 
 let clientReady = false;
 let myNumber = null;
 
+// ─── Follow persistence ──────────────────────────────────────────────────────
+
+const DATA_DIR = './data';
+const FOLLOWS_FILE = path.join(DATA_DIR, 'follows.json');
+
+function loadFollows() {
+  try {
+    if (fs.existsSync(FOLLOWS_FILE))
+      return new Set(JSON.parse(fs.readFileSync(FOLLOWS_FILE, 'utf8')));
+  } catch(e) { console.error('Error loading follows:', e); }
+  return new Set();
+}
+
+function saveFollows() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(FOLLOWS_FILE, JSON.stringify([...followedChats]));
+  } catch(e) { console.error('Error saving follows:', e); }
+}
+
+const followedChats = loadFollows();
+console.log(`Loaded ${followedChats.size} followed chats`);
+
 // ─── WhatsApp Client ───────────────────────────────────────────────────────────
 
 const client = new Client({
   authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
-  puppeteer: {
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  }
+  puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
 });
 
 client.on('qr', async (qr) => {
@@ -48,9 +67,7 @@ client.on('qr', async (qr) => {
     const qrDataUrl = await qrcode.toDataURL(qr);
     io.emit('qr', qrDataUrl);
     io.emit('status', { connected: false, message: 'Scan the QR Code on WhatsApp' });
-  } catch (err) {
-    console.error('Error generating QR:', err);
-  }
+  } catch (err) { console.error('Error generating QR:', err); }
 });
 
 client.on('ready', async () => {
@@ -76,7 +93,6 @@ client.on('disconnected', (reason) => {
 client.on('message', async (msg) => {
   try {
     if (msg.fromMe) return;
-
     const chat = await msg.getChat();
     const contact = await msg.getContact();
     const isGroup = chat.isGroup;
@@ -84,9 +100,11 @@ client.on('message', async (msg) => {
     const senderName = contact.pushname || contact.name || msg.from;
 
     let chatLabels = [];
+    let labelObjects = [];
     try {
       const labels = await chat.getLabels();
-      chatLabels = labels.map(l => l.name.toLowerCase());
+      labelObjects = labels.map(l => ({ id: l.id, name: l.name, color: l.hexColor || '#667781' }));
+      chatLabels = labelObjects.map(l => l.name.toLowerCase());
     } catch (e) {}
 
     let category = null;
@@ -97,11 +115,8 @@ client.on('message', async (msg) => {
       category = matched || 'direct';
     } else if (isGroup) {
       const matchedLabel = MONITORED_LABELS.find(l => chatLabels.includes(l));
-      if (matchedLabel) {
-        category = matchedLabel;
-      } else if (msg.mentionedIds && msg.mentionedIds.includes(myNumber)) {
-        category = 'mention';
-      }
+      if (matchedLabel) { category = matchedLabel; }
+      else if (msg.mentionedIds && msg.mentionedIds.includes(myNumber)) { category = 'mention'; }
     }
 
     if (!category) return;
@@ -113,6 +128,7 @@ client.on('message', async (msg) => {
       category,
       chatName: chatName || 'Direct',
       labels: chatLabels,
+      labelObjects,
       sender: senderName,
       body: msg.body,
       hasMedia: msg.hasMedia,
@@ -127,9 +143,7 @@ client.on('message', async (msg) => {
     io.emit('message', entry);
     emitStats();
     console.log(`[${category.toUpperCase()}] ${senderName}: ${msg.body.substring(0, 60)}`);
-  } catch (err) {
-    console.error('Error processing message:', err);
-  }
+  } catch (err) { console.error('Error processing message:', err); }
 });
 
 // ─── Stats ─────────────────────────────────────────────────────────────────────
@@ -139,22 +153,18 @@ async function emitStats() {
   try {
     const chats = await client.getChats();
     const groups = chats.filter(c => c.isGroup);
-    const groupsTotal = groups.length;
-    const groupsUnread = groups.filter(c => c.unreadCount > 0).length;
-    const totalUnread = chats.filter(c => c.unreadCount > 0).length;
-    io.emit('stats', { totalUnread, groupsUnread, groupsTotal });
-  } catch (e) {
-    console.error('Error fetching stats:', e);
-  }
+    io.emit('stats', {
+      totalUnread: chats.filter(c => c.unreadCount > 0).length,
+      groupsUnread: groups.filter(c => c.unreadCount > 0).length,
+      groupsTotal: groups.length
+    });
+  } catch (e) { console.error('Error fetching stats:', e); }
 }
-
 setInterval(emitStats, 30000);
 
 // ─── API ─────────────────────────────────────────────────────────────────────
 
-app.get('/api/version', (req, res) => {
-  res.json({ version: BUILD_VERSION });
-});
+app.get('/api/version', (req, res) => res.json({ version: BUILD_VERSION }));
 
 app.get('/api/stats', async (req, res) => {
   if (!clientReady) return res.status(503).json({ error: 'WhatsApp not connected' });
@@ -166,6 +176,40 @@ app.get('/api/stats', async (req, res) => {
       groupsUnread: groups.filter(c => c.unreadCount > 0).length,
       groupsTotal: groups.length
     });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Follow persistence
+app.post('/api/follow', (req, res) => {
+  const { chatId, followed } = req.body;
+  if (!chatId) return res.status(400).json({ error: 'chatId required' });
+  if (followed) followedChats.add(chatId);
+  else followedChats.delete(chatId);
+  saveFollows();
+  res.json({ ok: true });
+});
+
+// Get all WhatsApp labels
+app.get('/api/labels', async (req, res) => {
+  if (!clientReady) return res.status(503).json({ error: 'WhatsApp not connected' });
+  try {
+    const labels = await client.getLabels();
+    res.json(labels.map(l => ({ id: l.id, name: l.name, color: l.hexColor || '#667781' })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Toggle label on a chat (add if not present, remove if present)
+app.post('/api/toggle-label', async (req, res) => {
+  if (!clientReady) return res.status(503).json({ error: 'WhatsApp not connected' });
+  const { chatId, labelId } = req.body;
+  if (!chatId || !labelId) return res.status(400).json({ error: 'chatId and labelId required' });
+  try {
+    if (typeof client.addOrRemoveLabels !== 'function')
+      return res.status(501).json({ error: 'Label management requires WhatsApp Business' });
+    await client.addOrRemoveLabels([labelId], [chatId]);
+    const chat = await client.getChatById(chatId);
+    const labels = await chat.getLabels();
+    res.json({ ok: true, labels: labels.map(l => ({ id: l.id, name: l.name, color: l.hexColor || '#667781' })) });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -224,6 +268,7 @@ app.post('/api/clear-all', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('Dashboard connected');
   socket.emit('history', messageHistory);
+  socket.emit('followedChats', [...followedChats]);
   if (clientReady) {
     socket.emit('status', { connected: true, message: `Connected (${client.info?.pushname || ''})`, number: myNumber });
     emitStats();

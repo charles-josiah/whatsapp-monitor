@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   whatsapp-monitor:
     build: .
@@ -10,5 +8,6 @@ services:
     volumes:
       - ./wwebjs_auth:/app/.wwebjs_auth
       - ./wwebjs_cache:/app/.wwebjs_cache
+      - ./data:/app/data
     environment:
       - PORT=3000
