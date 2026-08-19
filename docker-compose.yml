@@ -9,5 +9,7 @@ services:
       - ./wwebjs_auth:/app/.wwebjs_auth
       - ./wwebjs_cache:/app/.wwebjs_cache
       - ./data:/app/data
+      - ./accounts:/app/accounts
     environment:
       - PORT=3000
+      - ACCOUNTS=${ACCOUNTS:-main,work}

@@ -25,6 +25,9 @@
     #status-dot.online { background: #51e06e; }
     #unread-badge { display: none; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 20px; font-size: 12px; }
     #unread-badge.visible { display: flex; }
+    #account-select { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; outline: none; flex-shrink: 0; }
+    #account-select:hover { background: rgba(255,255,255,0.25); }
+    #account-select option { color: #111B21; }
     #unread-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
     #groups-total { background: rgba(255,255,255,0.25); color: white; border-radius: 10px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
     #clear-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
@@ -124,7 +127,7 @@
   </style>
 </head>
 <body>
-<div id="qr-modal"><div id="qr-box"><h2>Connect WhatsApp</h2><p>Open WhatsApp &rarr; Linked devices &rarr; Link a device</p><img id="qr-img" src="" alt="QR" /></div></div>
+<div id="qr-modal"><div id="qr-box"><h2 id="qr-title">Connect WhatsApp</h2><p>Open WhatsApp &rarr; Linked devices &rarr; Link a device</p><img id="qr-img" src="" alt="QR" /></div></div>
 <div id="toast"></div>
 <header>
   <div class="header-left">
@@ -135,6 +138,7 @@
     </h1>
   </div>
   <div class="header-right">
+    <select id="account-select" title="Switch account"></select>
     <div id="unread-badge">&#128172; Groups: <span id="groups-total">0</span> &middot; Unread: <span id="unread-count">0</span></div>
     <button id="clear-btn">&#129529; Clear All</button>
     <button id="sound-btn">&#128276;</button>
@@ -158,36 +162,42 @@
 </main>
 <script>
   const socket = io();
-  let currentTab='all', soundEnabled=true;
-  const threads=new Map(), threadOrder=[];
-  const counts={all:0,direct:0,mention:0,eximio:0,pendente:0,followed:0,read:0};
-  const expandedChats=new Set();
-  const followedChatIds=new Set();
-  let allLabels=[];
+  const S = { currentTab:'all', soundEnabled:true, activeAccount:null, acc:{} };
+  function st(id){ if(!S.acc[id]) S.acc[id]=newAccountState(id); return S.acc[id]; }
+  function newAccountState(id){
+    return { id,
+      threads:new Map(), threadOrder:[],
+      counts:{all:0,direct:0,mention:0,eximio:0,pendente:0,followed:0,read:0},
+      expandedChats:new Set(), followedChatIds:new Set(), allLabels:[],
+      connected:false, status:'Connecting...', number:null,
+      groupsUnread:0, groupsTotal:0, qr:null, labelsLoaded:false };
+  }
+  const feedEl=()=>document.getElementById('feed');
+  const emptyEl=()=>document.getElementById('empty-state');
 
   fetch('/api/version').then(r=>r.json()).then(d=>{ document.getElementById('app-version').textContent='v'+d.version; }).catch(()=>{});
-  fetch('/api/labels').then(r=>r.json()).then(d=>{ if(Array.isArray(d)) allLabels=d; }).catch(()=>{});
 
-  function playNotif(){ if(!soundEnabled)return; try{ const ctx=new(window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.frequency.value=880;o.type='sine'; g.gain.setValueAtTime(0.3,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4); o.start();o.stop(ctx.currentTime+0.4); }catch(e){} }
-  document.getElementById('sound-btn').addEventListener('click',()=>{ soundEnabled=!soundEnabled; document.getElementById('sound-btn').innerHTML=soundEnabled?'&#128276;':'&#128277;'; });
+  function playNotif(){ if(!S.soundEnabled)return; try{ const ctx=new(window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.frequency.value=880;o.type='sine'; g.gain.setValueAtTime(0.3,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4); o.start();o.stop(ctx.currentTime+0.4); }catch(e){} }
+  document.getElementById('sound-btn').addEventListener('click',()=>{ S.soundEnabled=!S.soundEnabled; document.getElementById('sound-btn').innerHTML=S.soundEnabled?'&#128276;':'&#128277;'; });
   function toast(msg,d=2500){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),d); }
   function fmtTime(iso){ return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
   function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function tagLabel(c){ if(c==='followed') return 'Following'; return{direct:'Direct',mention:'@Mention',eximio:'Eximio',pendente:'Pending'}[c]||c; }
 
-  document.querySelectorAll('.tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); currentTab=tab.dataset.tab; renderFeed(); }); });
+  document.querySelectorAll('.tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); S.currentTab=tab.dataset.tab; renderFeed(); }); });
 
-  function addMsg(msg,isNew){
-    let t=threads.get(msg.chatId);
+  // ── per-account thread model ──────────────────────────────────────────────
+  function addMsg(a,msg,isNew){
+    let t=a.threads.get(msg.chatId);
     if(!t){
       t={chatId:msg.chatId,chatName:msg.chatName,category:msg.category,labels:msg.labels||[],
-         labelObjects:msg.labelObjects||[],followed:followedChatIds.has(msg.chatId),
+         labelObjects:msg.labelObjects||[],followed:a.followedChatIds.has(msg.chatId),
          markedRead:false,messages:[],newCount:0};
-      threads.set(msg.chatId,t); threadOrder.unshift(msg.chatId);
+      a.threads.set(msg.chatId,t); a.threadOrder.unshift(msg.chatId);
     } else if(isNew){
-      const idx=threadOrder.indexOf(msg.chatId);
-      if(idx>0){threadOrder.splice(idx,1);threadOrder.unshift(msg.chatId);}
-      if(t.markedRead&&!msg.fromMe){ t.markedRead=false; counts.read=Math.max(0,counts.read-1); if(!t.followed){counts[t.category]=(counts[t.category]||0)+1;counts.all++;} updateBadges(); }
+      const idx=a.threadOrder.indexOf(msg.chatId);
+      if(idx>0){a.threadOrder.splice(idx,1);a.threadOrder.unshift(msg.chatId);}
+      if(t.markedRead&&!msg.fromMe){ t.markedRead=false; a.counts.read=Math.max(0,a.counts.read-1); if(!t.followed){a.counts[t.category]=(a.counts[t.category]||0)+1;a.counts.all++;} updateBadges(a); }
       if(msg.labelObjects&&msg.labelObjects.length>0){ t.labelObjects=msg.labelObjects; t.labels=msg.labels||[]; }
     }
     t.messages.push(msg);
@@ -195,22 +205,22 @@
     return t;
   }
 
-  function doMarkReadThread(chatId){ const t=threads.get(chatId); if(!t||t.markedRead)return; t.markedRead=true; t.newCount=0; t.messages.forEach(m=>m.read=true); if(!t.followed){counts[t.category]=Math.max(0,(counts[t.category]||0)-1);counts.all=Math.max(0,counts.all-1);}else{counts.followed=Math.max(0,counts.followed-1);} counts.read++; updateBadges(); if(currentTab!=='read') slideOutCard(chatId); }
+  function doMarkReadThread(a,chatId){ const t=a.threads.get(chatId); if(!t||t.markedRead)return; t.markedRead=true; t.newCount=0; t.messages.forEach(m=>m.read=true); if(!t.followed){a.counts[t.category]=Math.max(0,(a.counts[t.category]||0)-1);a.counts.all=Math.max(0,a.counts.all-1);}else{a.counts.followed=Math.max(0,a.counts.followed-1);} a.counts.read++; updateBadges(a); if(S.currentTab!=='read') slideOutCard(chatId); }
 
-  async function doFollowThread(chatId){ const t=threads.get(chatId); if(!t||t.followed)return; t.followed=true; followedChatIds.add(chatId); if(!t.markedRead){counts[t.category]=Math.max(0,(counts[t.category]||0)-1);counts.all=Math.max(0,counts.all-1);counts.followed++;} updateBadges(); await persistFollow(chatId,true); if(currentTab!=='followed') slideOutCard(chatId); }
+  async function doFollowThread(a,chatId){ const t=a.threads.get(chatId); if(!t||t.followed)return; t.followed=true; a.followedChatIds.add(chatId); if(!t.markedRead){a.counts[t.category]=Math.max(0,(a.counts[t.category]||0)-1);a.counts.all=Math.max(0,a.counts.all-1);a.counts.followed++;} updateBadges(a); await persistFollow(a,chatId,true); if(S.currentTab!=='followed') slideOutCard(chatId); }
 
-  async function doUnfollowThread(chatId){ const t=threads.get(chatId); if(!t||!t.followed)return; t.followed=false; followedChatIds.delete(chatId); if(!t.markedRead){counts[t.category]=(counts[t.category]||0)+1;counts.all++;counts.followed=Math.max(0,counts.followed-1);} updateBadges(); await persistFollow(chatId,false); renderFeed(); }
+  async function doUnfollowThread(a,chatId){ const t=a.threads.get(chatId); if(!t||!t.followed)return; t.followed=false; a.followedChatIds.delete(chatId); if(!t.markedRead){a.counts[t.category]=(a.counts[t.category]||0)+1;a.counts.all++;a.counts.followed=Math.max(0,a.counts.followed-1);} updateBadges(a); await persistFollow(a,chatId,false); renderFeed(); }
 
-  async function persistFollow(chatId,followed){ try{ await fetch('/api/follow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId,followed})}); }catch(e){} }
+  async function persistFollow(a,chatId,followed){ try{ await fetch('/api/follow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:a.id,chatId,followed})}); }catch(e){} }
 
   function slideOutCard(chatId){ const card=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(chatId)}"]`); if(card){card.style.transition='opacity 0.3s,transform 0.3s';card.style.opacity='0';card.style.transform='translateX(12px)';setTimeout(()=>{card.remove();checkEmpty();},300);} }
-  function checkEmpty(){ setTimeout(()=>{ const feed=document.getElementById('feed'); const has=[...feed.children].some(c=>c.id!=='empty-state'); document.getElementById('empty-state').style.display=has?'none':'flex'; },350); }
+  function checkEmpty(){ setTimeout(()=>{ const feed=feedEl(); const has=[...feed.children].some(c=>c.id!=='empty-state'); emptyEl().style.display=has?'none':'flex'; },350); }
 
-  function getFiltered(){ return threadOrder.filter(id=>{ const t=threads.get(id); if(!t)return false; if(currentTab==='read') return t.markedRead; if(t.markedRead) return false; if(currentTab==='followed') return t.followed; if(t.followed) return false; if(currentTab==='all') return true; return t.category===currentTab; }); }
+  function getFiltered(a){ return a.threadOrder.filter(id=>{ const t=a.threads.get(id); if(!t)return false; if(S.currentTab==='read') return t.markedRead; if(t.markedRead) return false; if(S.currentTab==='followed') return t.followed; if(t.followed) return false; if(S.currentTab==='all') return true; return t.category===S.currentTab; }); }
 
-  function renderFeed(){ const feed=document.getElementById('feed'),empty=document.getElementById('empty-state'); [...feed.children].forEach(c=>{if(c!==empty)c.remove();}); const ids=getFiltered(); if(!ids.length){empty.style.display='flex';return;} empty.style.display='none'; ids.forEach(id=>{const t=threads.get(id);if(t)feed.appendChild(buildCard(t));}); }
+  function renderFeed(){ const a=S.activeAccount?st(S.activeAccount):null; const feed=feedEl(),empty=emptyEl(); [...feed.children].forEach(c=>{if(c!==empty)c.remove();}); if(!a){empty.style.display='flex';return;} const ids=getFiltered(a); if(!ids.length){empty.style.display='flex';return;} empty.style.display='none'; ids.forEach(id=>{const t=a.threads.get(id);if(t)feed.appendChild(buildCard(a,t));}); }
 
-  function renderLabelSection(container, thread){
+  function renderLabelSection(a, container, thread){
     container.innerHTML='';
     (thread.labelObjects||[]).forEach(label=>{
       const pill=document.createElement('span');
@@ -219,16 +229,16 @@
       pill.style.cssText=`background:${bg}22;color:${bg};border-color:${bg}55`;
       pill.innerHTML=`${esc(label.name)}<span class="label-pill-x">✕</span>`;
       pill.title='Click to remove label';
-      pill.addEventListener('click',e=>{ e.stopPropagation(); toggleLabel(thread,label.id,container); });
+      pill.addEventListener('click',e=>{ e.stopPropagation(); toggleLabel(a,thread,label.id,container); });
       container.appendChild(pill);
     });
     const currentIds=new Set((thread.labelObjects||[]).map(l=>l.id));
-    const available=allLabels.filter(l=>!currentIds.has(l.id));
+    const available=a.allLabels.filter(l=>!currentIds.has(l.id));
     if(available.length>0){
       const sel=document.createElement('select');
       sel.className='add-label-select';
       sel.innerHTML=`<option value="">&#43; label</option>`+available.map(l=>`<option value="${esc(l.id)}">${esc(l.name)}</option>`).join('');
-      sel.addEventListener('change',e=>{ if(e.target.value){toggleLabel(thread,e.target.value,container);e.target.value='';} });
+      sel.addEventListener('change',e=>{ if(e.target.value){toggleLabel(a,thread,e.target.value,container);e.target.value='';} });
       container.appendChild(sel);
     } else if(!thread.labelObjects||thread.labelObjects.length===0){
       const hint=document.createElement('span');
@@ -238,16 +248,15 @@
     }
   }
 
-  async function toggleLabel(thread, labelId, container){
+  async function toggleLabel(a, thread, labelId, container){
     try{
-      const r=await fetch('/api/toggle-label',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId,labelId})});
+      const r=await fetch('/api/toggle-label',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:a.id,chatId:thread.chatId,labelId})});
       const data=await r.json();
-      if(r.ok){ thread.labelObjects=data.labels; thread.labels=data.labels.map(l=>l.name.toLowerCase()); renderLabelSection(container,thread); toast('&#127991; Label updated'); }
+      if(r.ok){ thread.labelObjects=data.labels; thread.labels=data.labels.map(l=>l.name.toLowerCase()); renderLabelSection(a,container,thread); toast('&#127991; Label updated'); }
       else toast('&#10060; '+data.error);
     }catch(e){ toast('&#10060; '+e.message); }
   }
 
-  // Render a single message row
   function renderMsgRow(msg,isLast,isRead){
     if(msg.fromMe){
       const row=document.createElement('div'); row.className='thread-msg sent';
@@ -259,8 +268,8 @@
     return row;
   }
 
-  function buildCard(thread){
-    const isExpanded=expandedChats.has(thread.chatId);
+  function buildCard(a,thread){
+    const isExpanded=a.expandedChats.has(thread.chatId);
     const newCount=thread.newCount||0;
     const lastMsg=thread.messages[thread.messages.length-1];
     const displayTag=thread.followed?'followed':thread.category;
@@ -288,12 +297,11 @@
     const body=document.createElement('div'); body.className='thread-body'+(isExpanded?' open':'');
     const msgList=document.createElement('div'); msgList.className='thread-msgs';
 
-    // Render newest first — reverse array so newest appears at top
     const reversed=[...thread.messages].reverse();
     reversed.forEach((msg,i)=>msgList.appendChild(renderMsgRow(msg, i===reversed.length-1, thread.markedRead)));
 
     const labelSection=document.createElement('div'); labelSection.className='label-section';
-    if(isExpanded) renderLabelSection(labelSection,thread);
+    if(isExpanded) renderLabelSection(a,labelSection,thread);
 
     const replyArea=document.createElement('div'); replyArea.className='thread-reply';
     replyArea.innerHTML=`<input class="reply-input" type="text" placeholder="Reply to ${esc(thread.chatName)}..."/><button class="reply-btn">Send &#10148;</button>`;
@@ -305,8 +313,8 @@
       const opening=!body.classList.contains('open');
       body.classList.toggle('open',opening);
       hdr.querySelector('.chevron').classList.toggle('open',opening);
-      if(opening){ expandedChats.add(thread.chatId); renderLabelSection(labelSection,thread); }
-      else expandedChats.delete(thread.chatId);
+      if(opening){ a.expandedChats.add(thread.chatId); renderLabelSection(a,labelSection,thread); }
+      else a.expandedChats.delete(thread.chatId);
       const previewEl=hdr.querySelector('.thread-preview');
       if(opening&&previewEl) previewEl.remove();
       else if(!opening&&lastMsg&&!hdr.querySelector('.thread-preview')){
@@ -317,13 +325,13 @@
     });
 
     hdr.querySelector('.read-check').addEventListener('change',async e=>{
-      if(e.target.checked){ await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId})}); doMarkReadThread(thread.chatId); if(currentTab==='read') renderFeed(); }
-      else{ thread.markedRead=false; counts.read=Math.max(0,counts.read-1); if(!thread.followed){counts[thread.category]=(counts[thread.category]||0)+1;counts.all++;}else counts.followed++; updateBadges(); renderFeed(); }
+      if(e.target.checked){ await fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:a.id,chatId:thread.chatId})}); doMarkReadThread(a,thread.chatId); if(S.currentTab==='read') renderFeed(); }
+      else{ thread.markedRead=false; a.counts.read=Math.max(0,a.counts.read-1); if(!thread.followed){a.counts[thread.category]=(a.counts[thread.category]||0)+1;a.counts.all++;}else a.counts.followed++; updateBadges(a); renderFeed(); }
     });
 
     hdr.querySelector('.follow-check-input').addEventListener('change',e=>{
-      if(e.target.checked){ doFollowThread(thread.chatId); toast('&#128992; Moved to Following — saved'); }
-      else{ doUnfollowThread(thread.chatId); toast('Unfollowed — moved back to active'); }
+      if(e.target.checked){ doFollowThread(a,thread.chatId); toast('&#128992; Moved to Following — saved'); }
+      else{ doUnfollowThread(a,thread.chatId); toast('Unfollowed — moved back to active'); }
     });
 
     const inp=replyArea.querySelector('.reply-input'),btn=replyArea.querySelector('.reply-btn');
@@ -331,12 +339,11 @@
       const text=inp.value.trim(); if(!text)return;
       btn.disabled=true; btn.textContent='...';
       try{
-        const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:thread.chatId,message:text})});
+        const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:a.id,chatId:thread.chatId,message:text})});
         if(r.ok){
           inp.value='';
           const sentMsg={id:'local-'+Date.now(),sender:'You',body:text,timestamp:new Date().toISOString(),read:true,fromMe:true,hasMedia:false};
           thread.messages.push(sentMsg);
-          // Insert at top (newest first)
           msgList.insertBefore(renderMsgRow(sentMsg,false,false), msgList.firstChild);
           const countEl=hdr.querySelector('.msg-count');
           if(countEl)countEl.textContent=`${thread.messages.length} msgs`;
@@ -351,42 +358,81 @@
   }
 
   document.getElementById('clear-btn').addEventListener('click',async()=>{
+    const a=S.activeAccount?st(S.activeAccount):null; if(!a)return;
     const btn=document.getElementById('clear-btn'); btn.disabled=true; btn.innerHTML='&#9203; Clearing...';
-    try{ const r=await fetch('/api/clear-all',{method:'POST'}); const d=await r.json(); if(r.ok)toast(`&#9989; Cleared ${d.cleared}, kept ${d.skipped}`);else toast('&#10060; '+d.error); }catch(e){toast('&#10060; '+e.message);}
+    try{ const r=await fetch('/api/clear-all',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:a.id})}); const d=await r.json(); if(r.ok)toast(`&#9989; Cleared ${d.cleared}, kept ${d.skipped}`);else toast('&#10060; '+d.error); }catch(e){toast('&#10060; '+e.message);}
     btn.disabled=false; btn.innerHTML='&#129529; Clear All';
   });
 
-  function updateBadges(){ Object.keys(counts).forEach(k=>{const el=document.getElementById(`badge-${k}`);if(el)el.textContent=counts[k];}); }
+  function updateBadges(a){ if(!a) a=S.activeAccount?st(S.activeAccount):null; if(!a)return; Object.keys(a.counts).forEach(k=>{const el=document.getElementById(`badge-${k}`);if(el)el.textContent=a.counts[k];}); }
 
-  socket.on('status',d=>{ document.getElementById('status-dot').className='status-dot'+(d.connected?' online':''); document.getElementById('status-text').textContent=d.message; if(d.connected)document.getElementById('qr-modal').classList.remove('show'); });
-  socket.on('qr',url=>{document.getElementById('qr-img').src=url;document.getElementById('qr-modal').classList.add('show');});
-  socket.on('stats',d=>{ document.getElementById('unread-count').textContent=d.groupsUnread; document.getElementById('groups-total').textContent=d.groupsTotal||0; document.getElementById('unread-badge').classList.toggle('visible',(d.groupsTotal||0)>0); });
+  function updateHeaderState(){
+    const a=S.activeAccount?st(S.activeAccount):null; if(!a)return;
+    document.getElementById('status-dot').className='status-dot'+(a.connected?' online':'');
+    document.getElementById('status-text').textContent = a.connected? a.status : `${a.id}: ${a.status}`;
+    document.getElementById('unread-count').textContent=a.groupsUnread;
+    document.getElementById('groups-total').textContent=a.groupsTotal||0;
+    document.getElementById('unread-badge').classList.toggle('visible',(a.groupsTotal||0)>0);
+    if(a.qr&&!a.connected) showQr(a); else hideQr();
+  }
 
-  socket.on('followedChats',chatIds=>{
-    chatIds.forEach(id=>followedChatIds.add(id));
-    threads.forEach((t,chatId)=>{ if(followedChatIds.has(chatId)) t.followed=true; });
+  function showQr(a){ document.getElementById('qr-title').textContent=`Connect WhatsApp — ${a.id}`; document.getElementById('qr-img').src=a.qr||''; document.getElementById('qr-modal').classList.add('show'); }
+  function hideQr(){ document.getElementById('qr-modal').classList.remove('show'); }
+
+  function updateSelectStatus(){
+    const sel=document.getElementById('account-select'); if(!sel)return;
+    [...sel.options].forEach(opt=>{ const a=st(opt.value); if(!a)return; opt.textContent=a.id+(a.counts.all>0?` (${a.counts.all})`:'')+(a.connected?'':' ●'); });
+  }
+
+  function switchAccount(id){
+    S.activeAccount=id; const a=st(id);
+    document.getElementById('account-select').value=id;
+    if(!a.labelsLoaded){ a.labelsLoaded=true; fetch(`/api/labels?account=${id}`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) a.allLabels=d; }).catch(()=>{}); }
+    updateHeaderState(); updateBadges(a); renderFeed();
+  }
+
+  // ── socket events (routed per account) ────────────────────────────────────
+  socket.on('accounts',list=>{
+    const sel=document.getElementById('account-select');
+    sel.innerHTML='';
+    list.forEach(a=>{ const opt=document.createElement('option'); opt.value=a.id; opt.textContent=a.id; sel.appendChild(opt); });
+    sel.addEventListener('change',()=>switchAccount(sel.value));
+    if(list.length){ if(!S.activeAccount) switchAccount(list[0].id); else updateSelectStatus(); }
   });
 
-  socket.on('history',msgs=>{
-    [...msgs].reverse().forEach(m=>addMsg(m,false));
-    Object.keys(counts).forEach(k=>counts[k]=0);
-    threads.forEach(t=>{ if(t.markedRead){counts.read++;return;} if(t.followed){counts.followed++;return;} counts[t.category]=(counts[t.category]||0)+1; counts.all++; });
-    updateBadges(); renderFeed();
-  });
+  socket.on('status',d=>{ const a=st(d.account); a.connected=d.connected; a.status=d.message;
+    if(S.activeAccount===d.account){ updateHeaderState(); }
+    updateSelectStatus(); });
+
+  socket.on('qr',d=>{ const a=st(d.account); a.qr=d.qr; if(S.activeAccount===d.account) showQr(a); });
+
+  socket.on('stats',d=>{ const a=st(d.account); a.groupsUnread=d.groupsUnread; a.groupsTotal=d.groupsTotal||0;
+    if(S.activeAccount===d.account) updateHeaderState(); });
+
+  socket.on('followedChats',d=>{ const a=st(d.account); d.chatIds.forEach(id=>a.followedChatIds.add(id));
+    a.threads.forEach((t,chatId)=>{ if(a.followedChatIds.has(chatId)) t.followed=true; }); });
+
+  socket.on('history',d=>{ const a=st(d.account); [...d.msgs].reverse().forEach(m=>addMsg(a,m,false));
+    Object.keys(a.counts).forEach(k=>a.counts[k]=0);
+    a.threads.forEach(t=>{ if(t.markedRead){a.counts.read++;return;} if(t.followed){a.counts.followed++;return;} a.counts[t.category]=(a.counts[t.category]||0)+1; a.counts.all++; });
+    if(S.activeAccount===d.account){ updateBadges(a); renderFeed(); }
+    updateSelectStatus(); });
 
   socket.on('message',msg=>{
+    const a=st(msg.account);
     msg.read=false; msg.followed=false;
-    const isNew=!threads.has(msg.chatId);
-    addMsg(msg,true);
-    const t=threads.get(msg.chatId);
-    if(isNew&&!t.markedRead&&!t.followed){counts[msg.category]=(counts[msg.category]||0)+1;counts.all++;updateBadges();}
-    playNotif();
-    if(Notification.permission==='granted')new Notification(`WhatsApp — ${msg.sender}`,{body:msg.body||'[media]'});
+    const isNew=!a.threads.has(msg.chatId);
+    addMsg(a,msg,true);
+    const t=a.threads.get(msg.chatId);
+    if(isNew&&!t.markedRead&&!t.followed){a.counts[msg.category]=(a.counts[msg.category]||0)+1;a.counts.all++;}
+    if(a.id!==S.activeAccount){ updateSelectStatus(); return; }
+    updateBadges(a); playNotif();
+    if(Notification.permission==='granted')new Notification(`WhatsApp ${a.id} — ${msg.sender}`,{body:msg.body||'[media]'});
     if(t.markedRead)return;
-    const show=(currentTab==='all'&&!t.followed)||(currentTab===t.category&&!t.followed)||(currentTab==='followed'&&t.followed);
+    const show=(S.currentTab==='all'&&!t.followed)||(S.currentTab===msg.category&&!t.followed)||(S.currentTab==='followed'&&t.followed);
     const existing=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
-    if(existing&&show){existing.remove();document.getElementById('feed').insertBefore(buildCard(t),document.getElementById('feed').firstChild);}
-    else if(!existing&&show){document.getElementById('empty-state').style.display='none';document.getElementById('feed').insertBefore(buildCard(t),document.getElementById('feed').firstChild);}
+    if(existing&&show){existing.remove();feedEl().insertBefore(buildCard(a,t),feedEl().firstChild);}
+    else if(!existing&&show){emptyEl().style.display='none';feedEl().insertBefore(buildCard(a,t),feedEl().firstChild);}
   });
 
   if(Notification.permission==='default')Notification.requestPermission();

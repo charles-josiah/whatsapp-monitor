@@ -46,6 +46,20 @@ To add more monitored labels, edit `server.js`:
 const MONITORED_LABELS = ['eximio', 'pendente', 'new-label'];
 ```
 
+Works for every account.
+
+## Multiple WhatsApp accounts (one dashboard)
+
+Set the `ACCOUNTS` env var to a comma-separated list of account ids:
+
+```bash
+ACCOUNTS=main,work docker compose up -d
+```
+
+- The **first** account keeps the legacy session directories (`./wwebjs_auth`, `./wwebjs_cache`, `./data`) — your current session is preserved, no QR re-scan needed.
+- Additional accounts use `./accounts/<id>/` (mounted via `./accounts:/app/accounts`). Link each one by switching to it in the dashboard header and scanning the QR code.
+- Monitored labels apply to all accounts. History, follows, stats and QR are kept per account.
+
 ## Troubleshooting
 
 ### Container fails to start — "profile appears to be in use by another Chromium process"
