@@ -202,7 +202,7 @@ function createMonitor(cfg) {
   return account;
 }
 
-const accounts = resolveAccounts();
+const accounts = resolveAccounts().map(createMonitor);
 console.log(`Accounts configured: ${accounts.map((a) => a.id).join(', ')}`);
 
 setInterval(() => {
