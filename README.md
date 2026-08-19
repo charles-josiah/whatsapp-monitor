@@ -63,3 +63,9 @@ Then restart if needed:
 ```bash
 docker compose restart
 ```
+
+### Dashboard connected but no messages appear — "Error processing message: r: r" in logs
+
+This is a known, still-unreleased bug in `whatsapp-web.js` (issue [#201845](https://github.com/wwebjs/whatsapp-web.js/issues/201845), fix in PR [#201850](https://github.com/wwebjs/whatsapp-web.js/pull/201850)): WhatsApp Web renamed the message-key field `_serialized` to `$1` and migrated contacts to LID, which makes `getChats()`/`getChatById()` throw minified `r: r` errors. The client still shows as "Connected" but nothing is processed.
+
+The fix is applied automatically at build time by `patches/apply-wwebjs-fix.js` (see `Dockerfile`). After pulling a new `whatsapp-web.js` version, rebuild with `docker compose build --no-cache` and confirm the container logs stop showing `r: r` errors. Watch the upstream issue for the official release so the patch can be removed.

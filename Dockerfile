@@ -18,6 +18,11 @@ RUN npm install --omit=dev
 
 COPY . .
 
+# Apply upstream fix for wwebjs issue #201845 (PR #201850): WhatsApp Web
+# renamed `_serialized` -> `$1` on message keys and migrated chats to LID,
+# causing getChats()/getChatById() to throw "r: r". Re-run is safe (fails if already applied).
+RUN node patches/apply-wwebjs-fix.js /app/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
+
 # Generate build version: 0.1.HHMM (time of docker build)
 RUN echo "0.1.$(date +%H%M)" > /app/.build-version
 
