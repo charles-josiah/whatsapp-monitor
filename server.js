@@ -155,7 +155,7 @@ function attachHandlers(account) {
 
   account.client.on('message', async (msg) => {
     try {
-      if (msg.fromMe) return;
+      const fromMe = !!msg.fromMe;
       const chat = await msg.getChat();
       const contact = await msg.getContact();
       const isGroup = chat.isGroup;
@@ -183,6 +183,7 @@ function attachHandlers(account) {
       }
 
       if (!category) return;
+      if (fromMe && category === 'direct') return;
 
       const entry = {
         id: msg.id._serialized,
@@ -196,16 +197,17 @@ function attachHandlers(account) {
         body: msg.body,
         hasMedia: msg.hasMedia,
         fromNumber: msg.from,
-        read: false,
+        read: !!fromMe,
         followed: false,
+        fromMe,
       };
 
       account.messageHistory.unshift(entry);
       if (account.messageHistory.length > MAX_HISTORY) account.messageHistory.pop();
 
       emit('message', entry);
-      account.emitStats();
-      console.log(`[${account.id}][${category.toUpperCase()}] ${senderName}: ${msg.body.substring(0, 60)}`);
+      if (!fromMe) account.emitStats();
+      console.log(`[${account.id}][${category.toUpperCase()}]${fromMe ? ' <out>' : ''} ${senderName}: ${msg.body.substring(0, 60)}`);
     } catch (err) { console.error(`[${account.id}] Error processing message:`, err.message || err); }
   });
 }

@@ -457,10 +457,21 @@
 
   socket.on('message',msg=>{
     const a=st(msg.account);
-    msg.read=false; msg.followed=false;
     const isNew=!a.threads.has(msg.chatId);
     addMsg(a,msg,true);
     const t=a.threads.get(msg.chatId);
+    if(msg.fromMe){
+      if(a.id!==S.activeAccount){ updateSelectStatus(); renderAccountsSummary(); return; }
+      const existing=document.querySelector(`.thread-card[data-chat-id="${CSS.escape(msg.chatId)}"]`);
+      const showNow=(S.currentTab==='all')||(S.currentTab===t.category&&!t.followed)||(S.currentTab==='followed'&&t.followed);
+      if(existing){
+        if(showNow) existing.replaceWith(buildCard(a,t));
+        else existing.remove();
+      } else if(!t.markedRead&&!t.followed&&showNow&&!existing){
+        emptyEl().style.display='none'; feedEl().insertBefore(buildCard(a,t),feedEl().firstChild);
+      }
+      return;
+    }
     if(isNew&&!t.markedRead&&!t.followed){a.counts[msg.category]=(a.counts[msg.category]||0)+1;a.counts.all++;}
     if(a.id!==S.activeAccount){ updateSelectStatus(); renderAccountsSummary(); return; }
     updateBadges(a); renderAccountsSummary(); playNotif();
