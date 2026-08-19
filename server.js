@@ -89,13 +89,34 @@ function createMonitor(cfg) {
   account.saveFollows = saveFollows;
   console.log(`[${account.id}] Loaded ${account.follows.size} followed chats`);
 
-  const emit = (ev, payload) => io.emit(ev, { ...payload, account: account.id });
-
   // WhatsApp client
   account.client = new Client({
     authStrategy: new LocalAuth({ dataPath: account.authPath }),
     puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] },
   });
+
+  attachHandlers(account);
+
+  // Stats
+  account.emitStats = async () => {
+    if (!account.clientReady) return;
+    try {
+      const chats = await account.client.getChats();
+      const groups = chats.filter((c) => c.isGroup);
+      io.emit('stats', {
+        account: account.id,
+        totalUnread: chats.filter((c) => c.unreadCount > 0).length,
+        groupsUnread: groups.filter((c) => c.unreadCount > 0).length,
+        groupsTotal: groups.length,
+      });
+    } catch (e) { console.error(`[${account.id}] Error fetching stats:`, e.message || e); }
+  };
+
+  return account;
+}
+
+function attachHandlers(account) {
+  const emit = (ev, payload) => io.emit(ev, { ...payload, account: account.id });
 
   account.client.on('qr', async (qr) => {
     console.log(`[${account.id}] QR Code generated — scan it on WhatsApp.`);
@@ -122,10 +143,13 @@ function createMonitor(cfg) {
     emit('status', { connected: false, message: account.statusMsg });
   });
 
+  // ─── Disconnect (user-triggered) ───────────────────────────────────────────
   account.client.on('disconnected', (reason) => {
     account.clientReady = false;
-    account.statusMsg = `Disconnected: ${reason}`;
-    console.log(`[${account.id}] Disconnected:`, reason);
+    if (reason !== 'NAVIGATION') {
+      account.statusMsg = `Disconnected: ${reason}`;
+      console.log(`[${account.id}] Disconnected:`, reason);
+    }
     emit('status', { connected: false, message: account.statusMsg });
   });
 
@@ -184,22 +208,6 @@ function createMonitor(cfg) {
       console.log(`[${account.id}][${category.toUpperCase()}] ${senderName}: ${msg.body.substring(0, 60)}`);
     } catch (err) { console.error(`[${account.id}] Error processing message:`, err.message || err); }
   });
-
-  // Stats
-  account.emitStats = async () => {
-    if (!account.clientReady) return;
-    try {
-      const chats = await account.client.getChats();
-      const groups = chats.filter((c) => c.isGroup);
-      emit('stats', {
-        totalUnread: chats.filter((c) => c.unreadCount > 0).length,
-        groupsUnread: groups.filter((c) => c.unreadCount > 0).length,
-        groupsTotal: groups.length,
-      });
-    } catch (e) { console.error(`[${account.id}] Error fetching stats:`, e.message || e); }
-  };
-
-  return account;
 }
 
 const accounts = resolveAccounts().map(createMonitor);
@@ -219,6 +227,32 @@ app.get('/api/version', (req, res) => res.json({ version: BUILD_VERSION }));
 
 app.get('/api/accounts', (req, res) =>
   res.json(accounts.map((a) => ({ id: a.id, connected: a.clientReady, status: a.statusMsg }))));
+
+app.post('/api/disconnect', async (req, res) => {
+  const account = getAccount(req.body.account);
+  try {
+    if (account.client) {
+      try { await account.client.logout(); } catch (e) {}
+      try { await account.client.destroy(); } catch (e) {}
+    }
+  } catch (e) {}
+  for (const dir of [account.authPath, account.cachePath]) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {}
+  }
+  account.clientReady = false;
+  account.myNumber = null;
+  account.messageHistory = [];
+  account.statusMsg = 'Disconnected — scan the QR to link again';
+  account.client = new Client({
+    authStrategy: new LocalAuth({ dataPath: account.authPath }),
+    puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] },
+  });
+  attachHandlers(account);
+  io.emit('status', { account: account.id, connected: false, message: account.statusMsg });
+  account.client.initialize().catch((e) => console.error(`[${account.id}] Restart error:`, e.message || e));
+  console.log(`[${account.id}] Disconnected by user — session cleared, waiting for new QR`);
+  res.json({ ok: true });
+});
 
 app.get('/api/stats', async (req, res) => {
   const account = getAccount(req.query.account);

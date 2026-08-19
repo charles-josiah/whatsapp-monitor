@@ -34,6 +34,14 @@
     #clear-btn:hover { background: rgba(255,255,255,0.3); }
     #clear-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #sound-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 5px 9px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+    #accounts-summary { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: 4px; }
+    .acct-chip { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.9); border-radius: 12px; padding: 2px 9px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+    .acct-chip .chip-id { font-weight: 700; color: #fff; }
+    .acct-chip.active { background: rgba(255,255,255,0.3); }
+    .acct-chip .chip-dot { color: #ff6363; margin-left: 3px; font-size: 8px; vertical-align: middle; }
+    #disconnect-btn { background: rgba(255,82,82,0.25); border: 1px solid rgba(255,82,82,0.55); color: white; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    #disconnect-btn:hover { background: rgba(255,82,82,0.4); }
+    #disconnect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #qr-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
     #qr-modal.show { display: flex; }
     #qr-box { background: white; border-radius: 16px; padding: 28px; text-align: center; max-width: 340px; width: 90%; }
@@ -136,12 +144,14 @@
       WhatsApp Monitor
       <span id="app-version">v0.1.dev</span>
     </h1>
+    <div id="accounts-summary"></div>
   </div>
   <div class="header-right">
     <select id="account-select" title="Switch account"></select>
     <div id="unread-badge">&#128172; Groups: <span id="groups-total">0</span> &middot; Unread: <span id="unread-count">0</span></div>
     <button id="clear-btn">&#129529; Clear All</button>
     <button id="sound-btn">&#128276;</button>
+    <button id="disconnect-btn" title="Remove this account's session — a new QR is needed to link again">&#9100; Disconnect</button>
     <div id="status-badge"><div id="status-dot"></div><span id="status-text">Connecting...</span></div>
   </div>
 </header>
@@ -364,6 +374,20 @@
     btn.disabled=false; btn.innerHTML='&#129529; Clear All';
   });
 
+  document.getElementById('disconnect-btn').addEventListener('click',async()=>{
+    const a=S.activeAccount?st(S.activeAccount):null; if(!a)return;
+    if(!confirm(`Disconnect "${a.id}"? The session is removed from the server and you must link this account again (QR scan).`))return;
+    const btn=document.getElementById('disconnect-btn'); btn.disabled=true; btn.textContent='...';
+    a.qr=null; hideQr(); a.threads.clear(); a.threadOrder=[]; Object.keys(a.counts).forEach(k=>a.counts[k]=0);
+    try{
+      const r=await fetch('/api/disconnect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:a.id})});
+      if(r.ok) toast(`&#9989; "${a.id}" disconnected — scan the QR to link again`);
+      else toast('&#10060; '+(((await r.json().catch(()=>{}))||{}).error||'Failed'));
+    }catch(e){ toast('&#10060; '+e.message); }
+    btn.disabled=false; btn.innerHTML='&#9100; Disconnect';
+    updateBadges(a); renderAccountsSummary(); renderFeed();
+  });
+
   function updateBadges(a){ if(!a) a=S.activeAccount?st(S.activeAccount):null; if(!a)return; Object.keys(a.counts).forEach(k=>{const el=document.getElementById(`badge-${k}`);if(el)el.textContent=a.counts[k];}); }
 
   function updateHeaderState(){
@@ -384,11 +408,24 @@
     [...sel.options].forEach(opt=>{ const a=st(opt.value); if(!a)return; opt.textContent=a.id+(a.counts.all>0?` (${a.counts.all})`:'')+(a.connected?'':' ●'); });
   }
 
+  function renderAccountsSummary(){
+    const el=document.getElementById('accounts-summary'); if(!el)return;
+    el.innerHTML='';
+    Object.keys(S.acc).forEach(id=>{
+      const a=S.acc[id];
+      const chip=document.createElement('span');
+      chip.className='acct-chip'+(id===S.activeAccount?' active':'')+(a.connected?'':' offline');
+      chip.title=a.connected? a.status : `${id}: ${a.status}`;
+      chip.innerHTML=`<span class="chip-id">${esc(id)}</span>: ${a.counts.mention||0} mentions &middot; ${a.groupsUnread||0} unread &middot; ${a.groupsTotal||0} groups${a.connected?'':'<span class="chip-dot">&#9679;</span>'}`;
+      el.appendChild(chip);
+    });
+  }
+
   function switchAccount(id){
     S.activeAccount=id; const a=st(id);
     document.getElementById('account-select').value=id;
     if(!a.labelsLoaded){ a.labelsLoaded=true; fetch(`/api/labels?account=${id}`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) a.allLabels=d; }).catch(()=>{}); }
-    updateHeaderState(); updateBadges(a); renderFeed();
+    updateHeaderState(); updateBadges(a); renderAccountsSummary(); renderFeed();
   }
 
   // ── socket events (routed per account) ────────────────────────────────────
@@ -402,12 +439,12 @@
 
   socket.on('status',d=>{ const a=st(d.account); a.connected=d.connected; a.status=d.message;
     if(S.activeAccount===d.account){ updateHeaderState(); }
-    updateSelectStatus(); });
+    updateSelectStatus(); renderAccountsSummary(); });
 
   socket.on('qr',d=>{ const a=st(d.account); a.qr=d.qr; if(S.activeAccount===d.account) showQr(a); });
 
   socket.on('stats',d=>{ const a=st(d.account); a.groupsUnread=d.groupsUnread; a.groupsTotal=d.groupsTotal||0;
-    if(S.activeAccount===d.account) updateHeaderState(); });
+    if(S.activeAccount===d.account) updateHeaderState(); renderAccountsSummary(); });
 
   socket.on('followedChats',d=>{ const a=st(d.account); d.chatIds.forEach(id=>a.followedChatIds.add(id));
     a.threads.forEach((t,chatId)=>{ if(a.followedChatIds.has(chatId)) t.followed=true; }); });
@@ -416,7 +453,7 @@
     Object.keys(a.counts).forEach(k=>a.counts[k]=0);
     a.threads.forEach(t=>{ if(t.markedRead){a.counts.read++;return;} if(t.followed){a.counts.followed++;return;} a.counts[t.category]=(a.counts[t.category]||0)+1; a.counts.all++; });
     if(S.activeAccount===d.account){ updateBadges(a); renderFeed(); }
-    updateSelectStatus(); });
+    updateSelectStatus(); renderAccountsSummary(); });
 
   socket.on('message',msg=>{
     const a=st(msg.account);
@@ -425,8 +462,8 @@
     addMsg(a,msg,true);
     const t=a.threads.get(msg.chatId);
     if(isNew&&!t.markedRead&&!t.followed){a.counts[msg.category]=(a.counts[msg.category]||0)+1;a.counts.all++;}
-    if(a.id!==S.activeAccount){ updateSelectStatus(); return; }
-    updateBadges(a); playNotif();
+    if(a.id!==S.activeAccount){ updateSelectStatus(); renderAccountsSummary(); return; }
+    updateBadges(a); renderAccountsSummary(); playNotif();
     if(Notification.permission==='granted')new Notification(`WhatsApp ${a.id} — ${msg.sender}`,{body:msg.body||'[media]'});
     if(t.markedRead)return;
     const show=(S.currentTab==='all'&&!t.followed)||(S.currentTab===msg.category&&!t.followed)||(S.currentTab==='followed'&&t.followed);
